@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tornei e eventi | Kobra Kay Bleyblade X</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <img class="brand-logo" src="images/logo-club.png" alt="Logo Kobra Kay Bleyblade X" />
+      <div>
+        <p class="brand-title">Kobra Kay Bleyblade X</p>
+        <p class="brand-subtitle">Club Beyblade Emilia Romagna</p>
+      </div>
+    </div>
+    <nav class="site-nav">
+      <a href="index.html">Unisciti al club</a>
+      <a class="active" href="tornei.html">Tornei e eventi</a>
+      <a href="trofei.html">Trofei</a>
+      <a href="crea-bey.html">Crea il tuo bey</a>
+      <a href="allenamenti.html">Allenamenti settimanali</a>
+      <a href="la-mia-cintura.html">La mia cintura</a>
+      <a href="team.html">Condividi il tuo team</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <h1>Tornei e eventi</h1>
+      <p>Le prossime tappe dove il club <span class="club-name">Kobra Kay Bleyblade X</span> scende in arena.</p>
+    </section>
+
+    <section class="event-grid" id="event-grid"></section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Vuoi un nuovo torneo in zona? Scrivici su Telegram.</p>
+    <a class="whatsapp-link" href="https://chat.whatsapp.com/KB9i8q9AjGL2bUya3xvLXv">
+      <img class="whatsapp-icon" src="images/whatsapp.png" alt="" />
+      Entra nel gruppo WhatsApp
+    </a>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

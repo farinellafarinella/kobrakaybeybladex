@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Area Admin | Kobra Kay Bleyblade X</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <img class="brand-logo" src="images/logo-club.png" alt="Logo Kobra Kay Bleyblade X" />
+      <div>
+        <p class="brand-title">Kobra Kay Bleyblade X</p>
+        <p class="brand-subtitle">Club Beyblade Emilia Romagna</p>
+      </div>
+    </div>
+    <nav class="site-nav">
+      <a href="index.html">Unisciti al club</a>
+      <a href="tornei.html">Tornei e eventi</a>
+      <a href="trofei.html">Trofei</a>
+      <a href="crea-bey.html">Crea il tuo bey</a>
+      <a href="allenamenti.html">Allenamenti settimanali</a>
+      <a href="la-mia-cintura.html">La mia cintura</a>
+      <a href="team.html">Condividi il tuo team</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <h1>Admin</h1>
+      <p>Accedi per gestire eventi e trofei. Tutto resta salvato localmente nel browser.</p>
+    </section>
+
+    <section class="admin-layout">
+      <form class="creator-form" id="admin-login">
+        <h2>Login amministratore</h2>
+        <label>
+          Password admin
+          <input type="password" id="admin-password" placeholder="Inserisci password" required />
+        </label>
+        <button class="cta" type="submit">Accedi</button>
+        <p class="form-note">Accesso riservato allo staff.</p>
+      </form>
+
+      <div class="creator-results admin-panel" id="admin-panel" hidden style="display: none;">
+        <h2>Gestione contenuti</h2>
+        <div class="admin-grid">
+          <form class="admin-form" id="belt-form">
+            <h3>Nuovo membro cintura</h3>
+            <label>
+              Nome membro
+              <input type="text" id="belt-name" placeholder="Nome e cognome" required />
+            </label>
+            <label>
+              Cintura
+              <select id="belt-level" required>
+                <option value="">Seleziona cintura</option>
+                <option value="bianca">Bianca</option>
+                <option value="gialla">Gialla</option>
+                <option value="arancione">Arancione</option>
+                <option value="verde">Verde</option>
+                <option value="blu">Blu</option>
+                <option value="marrone">Marrone</option>
+                <option value="nera">Nera</option>
+              </select>
+            </label>
+            <button class="cta" type="submit">Aggiungi membro</button>
+          </form>
+          <form class="admin-form" id="event-form">
+            <h3>Nuovo evento</h3>
+            <label>
+              Data e luogo
+              <input type="text" id="event-date" placeholder="12 Aprile 2024 · Ravenna" required />
+            </label>
+            <label>
+              Titolo
+              <input type="text" id="event-title" placeholder="Nome torneo" required />
+            </label>
+            <label>
+              Descrizione
+              <textarea id="event-desc" rows="3" placeholder="Dettagli evento" required></textarea>
+            </label>
+            <button class="cta" type="submit">Aggiungi evento</button>
+          </form>
+
+          <form class="admin-form" id="training-form">
+            <h3>Nuovo allenamento</h3>
+            <label>
+              Data e luogo
+              <input type="text" id="training-date" placeholder="Ogni mercoledi · Ravenna" required />
+            </label>
+            <label>
+              Titolo
+              <input type="text" id="training-title" placeholder="Allenamento stamina" required />
+            </label>
+            <label>
+              Descrizione
+              <textarea id="training-desc" rows="3" placeholder="Dettagli allenamento" required></textarea>
+            </label>
+            <button class="cta" type="submit">Aggiungi allenamento</button>
+          </form>
+
+          <form class="admin-form" id="trophy-form">
+            <h3>Nuovo trofeo</h3>
+            <label>
+              Titolo risultato
+              <input type="text" id="trophy-title" placeholder="1 posto · Spin Clash 2024" required />
+            </label>
+            <label>
+              Nome e combo
+              <input type="text" id="trophy-name" placeholder="Nome membro · combo" required />
+            </label>
+            <label>
+              Descrizione
+              <textarea id="trophy-desc" rows="3" placeholder="Note risultato" required></textarea>
+            </label>
+            <button class="cta" type="submit">Aggiungi trofeo</button>
+          </form>
+        </div>
+
+        <div class="admin-grid">
+          <div class="admin-form" id="belt-list-admin">
+            <h3>Cinture attuali</h3>
+            <div class="admin-list"></div>
+          </div>
+          <div class="admin-form" id="event-list">
+            <h3>Eventi attuali</h3>
+            <div class="admin-list"></div>
+          </div>
+          <div class="admin-form" id="training-list">
+            <h3>Allenamenti attuali</h3>
+            <div class="admin-list"></div>
+          </div>
+          <div class="admin-form" id="trophy-list">
+            <h3>Trofei attuali</h3>
+            <div class="admin-list"></div>
+          </div>
+        </div>
+
+        <div class="admin-grid">
+          <form class="admin-form" id="password-form">
+            <h3>Cambia password</h3>
+            <label>
+              Nuova password
+              <input type="password" id="new-password" placeholder="Nuova password" required />
+            </label>
+            <button class="cta" type="submit">Salva</button>
+          </form>
+          <div class="admin-form">
+            <h3>Azioni rapide</h3>
+            <button class="cta" type="button" id="reset-data">Ripristina dati base</button>
+            <button class="cta" type="button" id="admin-logout">Logout admin</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Area privata del club. Condividi la password solo con lo staff.</p>
+    <a class="whatsapp-link" href="https://chat.whatsapp.com/KB9i8q9AjGL2bUya3xvLXv">
+      <img class="whatsapp-icon" src="images/whatsapp.png" alt="" />
+      Entra nel gruppo WhatsApp
+    </a>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Crea il tuo bey | Kobra Kay Bleyblade X</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <img class="brand-logo" src="images/logo-club.png" alt="Logo Kobra Kay Bleyblade X" />
+      <div>
+        <p class="brand-title">Kobra Kay Bleyblade X</p>
+        <p class="brand-subtitle">Club Beyblade Emilia Romagna</p>
+      </div>
+    </div>
+    <nav class="site-nav">
+      <a href="index.html">Unisciti al club</a>
+      <a href="tornei.html">Tornei e eventi</a>
+      <a href="trofei.html">Trofei</a>
+      <a class="active" href="crea-bey.html">Crea il tuo bey</a>
+      <a href="allenamenti.html">Allenamenti settimanali</a>
+      <a href="la-mia-cintura.html">La mia cintura</a>
+      <a href="team.html">Condividi il tuo team</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <h1>Crea il tuo bey</h1>
+      <p>Scegli lama, ratchet e bit. Ti diciamo subito cosa comprare per avere quel beyblade.</p>
+    </section>
+
+    <section class="creator-layout">
+      <form class="creator-form" id="bey-form">
+        <label>
+          Lama
+          <select id="blade-select" required>
+            <option value="">Seleziona la lama</option>
+          </select>
+        </label>
+        <label>
+          Ratchet
+          <select id="ratchet-select" required>
+            <option value="">Seleziona il ratchet</option>
+          </select>
+        </label>
+        <label>
+          Punta
+          <select id="bit-select" required>
+            <option value="">Seleziona la punta</option>
+          </select>
+        </label>
+        <button class="cta" type="submit">Trova i bey da comprare</button>
+        <p class="form-note">Esempio: Lama = Keel Shark, Ratchet = 1-60, Punta = T (Taper).</p>
+      </form>
+
+      <div class="creator-results" id="bey-results" aria-live="polite">
+        <h2>Risultato</h2>
+        <p class="muted">Compila i campi per vedere la lista degli acquisti consigliati.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Condividi la tua idea: la trasformiamo in un configuratore reale.</p>
+    <a class="whatsapp-link" href="https://chat.whatsapp.com/KB9i8q9AjGL2bUya3xvLXv">
+      <img class="whatsapp-icon" src="images/whatsapp.png" alt="" />
+      Entra nel gruppo WhatsApp
+    </a>
+  </footer>
+
+  <script src="bey.js"></script>
+</body>
+</html>

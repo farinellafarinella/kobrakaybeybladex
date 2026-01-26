@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>La mia cintura | Kobra Kay Bleyblade X</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <img class="brand-logo" src="images/logo-club.png" alt="Logo Kobra Kay Bleyblade X" />
+      <div>
+        <p class="brand-title">Kobra Kay Bleyblade X</p>
+        <p class="brand-subtitle">Club Beyblade Emilia Romagna</p>
+      </div>
+    </div>
+    <nav class="site-nav">
+      <a href="index.html">Unisciti al club</a>
+      <a href="tornei.html">Tornei e eventi</a>
+      <a href="trofei.html">Trofei</a>
+      <a href="crea-bey.html">Crea il tuo bey</a>
+      <a href="allenamenti.html">Allenamenti settimanali</a>
+      <a class="active" href="la-mia-cintura.html">La mia cintura</a>
+      <a href="team.html">Condividi il tuo team</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <h1>La mia cintura</h1>
+      <p>Qui trovi i nomi dei Kobra Kay e la cintura attuale, aggiornata ogni 14 giorni.</p>
+    </section>
+
+    <section class="belt-layout">
+      <div class="belt-card">
+        <h2>Regole della cintura</h2>
+        <p class="lead">
+          Ogni 14 giorni si organizza un mini torneo interno. La prima meta dei giocatori passa di cintura.
+        </p>
+        <ul class="belt-steps">
+          <li>Bianca</li>
+          <li>Gialla</li>
+          <li>Arancione</li>
+          <li>Verde</li>
+          <li>Blu</li>
+          <li>Marrone</li>
+          <li>Nera</li>
+        </ul>
+        <p class="form-note">Aggiornamento quindicinale dopo il mini torneo.</p>
+      </div>
+
+      <div class="belt-card">
+        <h2>Elenco Kobra Kay</h2>
+        <div class="belt-filters">
+          <button class="belt-filter active" type="button" data-belt="tutte">Tutte</button>
+          <button class="belt-filter" type="button" data-belt="bianca">Bianca</button>
+          <button class="belt-filter" type="button" data-belt="gialla">Gialla</button>
+          <button class="belt-filter" type="button" data-belt="arancione">Arancione</button>
+          <button class="belt-filter" type="button" data-belt="verde">Verde</button>
+          <button class="belt-filter" type="button" data-belt="blu">Blu</button>
+          <button class="belt-filter" type="button" data-belt="marrone">Marrone</button>
+          <button class="belt-filter" type="button" data-belt="nera">Nera</button>
+        </div>
+        <div class="belt-list" id="belt-list"></div>
+        <p class="muted" id="belt-empty" hidden>Nessun membro inserito.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Ogni mini torneo interno decide la prossima cintura.</p>
+    <a class="whatsapp-link" href="https://chat.whatsapp.com/KB9i8q9AjGL2bUya3xvLXv">
+      <img class="whatsapp-icon" src="images/whatsapp.png" alt="" />
+      Entra nel gruppo WhatsApp
+    </a>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
