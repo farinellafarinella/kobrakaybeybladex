@@ -58,7 +58,7 @@ const memberCount = document.getElementById("member-count");
 
 const googleProvider = new GoogleAuthProvider();
 const currentPage = window.location.pathname.split("/").pop() || "index.html";
-const isLoginPage = currentPage === "login.html";
+const isLoginPage = currentPage === "index.html" || currentPage === "login.html";
 const nextPage = new URLSearchParams(window.location.search).get("next");
 
 const setLoginFlag = (value) => {
@@ -119,9 +119,9 @@ const redirectToLogin = () => {
     return;
   }
   const destination =
-    currentPage && currentPage !== "login.html"
-      ? `login.html?next=${encodeURIComponent(currentPage)}`
-      : "login.html";
+    currentPage && currentPage !== "index.html"
+      ? `index.html?next=${encodeURIComponent(currentPage)}`
+      : "index.html";
   window.location.replace(destination);
 };
 
@@ -274,7 +274,7 @@ onAuthStateChanged(auth, async (user) => {
     unlockSite();
     if (isLoginPage) {
       const destination =
-        nextPage && nextPage !== "login.html" ? nextPage : "index.html";
+        nextPage && nextPage !== "index.html" ? nextPage : "home.html";
       window.location.replace(destination);
       return;
     }
