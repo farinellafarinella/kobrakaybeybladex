@@ -126,8 +126,9 @@ const renderHeaderUser = (user, profile = {}) => {
     existing?.remove();
     return;
   }
-  const badge = existing || document.createElement("div");
+  const badge = existing || document.createElement("a");
   badge.className = "user-badge";
+  badge.href = "il-mio-profilo.html";
   badge.textContent = getUserLabel(user, profile);
   if (!existing) {
     siteHeader.appendChild(badge);

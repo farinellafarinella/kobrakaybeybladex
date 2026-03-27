@@ -108,6 +108,7 @@ main {
 }
 
 .user-badge {
+  text-decoration: none;
   padding: 10px 16px;
   border-radius: 999px;
   background: rgba(253, 244, 25, 0.14);
@@ -115,6 +116,11 @@ main {
   color: var(--ember);
   font-weight: 700;
   white-space: nowrap;
+}
+
+.user-badge:hover {
+  transform: translateY(-2px);
+  background: rgba(253, 244, 25, 0.22);
 }
 
 .profile-summary {
