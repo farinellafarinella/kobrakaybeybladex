@@ -41,6 +41,7 @@ const firebaseConfig = {
 };
 
 const CHALLONGE_PUBLIC_API_KEY = "IN5466054eb0e5f2302f3ac00cc21276b4112d64b181f4ba32";
+const CHALLONGE_API_KEY_PLACEHOLDER = "INCOLLA_LA_TUA_API_KEY_QUI";
 const CHALLONGE_API_KEY_STORAGE = "kobra_challonge_api_key";
 const CHALLONGE_API_BASE = "https://api.challonge.com/v1";
 const challongeStateLabels = {
@@ -109,7 +110,7 @@ let activeTournamentRegistrationId = "";
 const getChallongeApiKey = () => {
   const storedKey = window.localStorage.getItem(CHALLONGE_API_KEY_STORAGE) || "";
   const key = (storedKey || CHALLONGE_PUBLIC_API_KEY).trim();
-  if (!key || key === CHALLONGE_PUBLIC_API_KEY) {
+  if (!key || key === CHALLONGE_API_KEY_PLACEHOLDER) {
     throw new Error(
       "Configura la API key Challonge in firebase.js prima di usare l'import automatico."
     );
