@@ -20,12 +20,17 @@ import {
   onSnapshot,
   query,
   orderBy,
+  where,
   doc,
   setDoc,
   updateDoc,
   arrayUnion,
   arrayRemove,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getFunctions,
+  httpsCallable,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCD4ZnQqwRuUbDsrZ-fKTcn898VsoJoLqM",
@@ -40,6 +45,7 @@ const firebaseConfig = {
 const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
+const functions = getFunctions(firebaseApp);
 
 const authTabs = document.querySelectorAll(".auth-tab");
 const authPanels = document.querySelectorAll(".auth-panel");
@@ -63,8 +69,6 @@ const profileFirstNameInput = document.getElementById("profile-first-name");
 const profileLastNameInput = document.getElementById("profile-last-name");
 const profileNicknameInput = document.getElementById("profile-nickname");
 const profileCityInput = document.getElementById("profile-city");
-const profileFavoriteBeyInput = document.getElementById("profile-favorite-bey");
-const profileBioInput = document.getElementById("profile-bio");
 const profileTournamentsInput = document.getElementById("profile-tournaments");
 const profileSaveStatus = document.getElementById("profile-save-status");
 const profileDisplayName = document.getElementById("profile-display-name");
@@ -80,6 +84,7 @@ const memberTrainingTitleInput = document.getElementById("member-training-title"
 const memberTrainingDescInput = document.getElementById("member-training-desc");
 const memberTrainingStatus = document.getElementById("member-training-status");
 const memberTrainingGrid = document.getElementById("member-training-grid");
+const eventGrid = document.getElementById("event-grid");
 
 const googleProvider = new GoogleAuthProvider();
 const ADMIN_EMAILS = ["mrpinkukulele@gmail.com"];
@@ -87,7 +92,82 @@ const currentPage = window.location.pathname.split("/").pop() || "index.html";
 const isLoginPage = currentPage === "index.html" || currentPage === "login.html";
 const nextPage = new URLSearchParams(window.location.search).get("next");
 let unsubscribeCurrentUserProfile = null;
+let unsubscribeEventRegistrations = null;
 let currentUserProfile = {};
+let registeredEventIds = new Set();
+let activeTournamentRegistrationId = "";
+const importChallongeTournament = httpsCallable(
+  functions,
+  "importChallongeTournament"
+);
+const registerForChallongeTournament = httpsCallable(
+  functions,
+  "registerForChallongeTournament"
+);
+
+window.kobraKayImportTournament = async (challongeUrl) => {
+  const response = await importChallongeTournament({ challongeUrl });
+  return response.data || {};
+};
+
+const updateTournamentRegistrationUi = () => {
+  if (!eventGrid) {
+    return;
+  }
+
+  eventGrid.querySelectorAll("[data-register-event-id]").forEach((button) => {
+    const eventId = button.dataset.registerEventId || "";
+    const isRegistered = registeredEventIds.has(eventId);
+    const isLoading = activeTournamentRegistrationId === eventId;
+
+    button.disabled = isLoading || isRegistered;
+    button.classList.toggle("active", isRegistered);
+    button.textContent = isLoading
+      ? "Iscrizione..."
+      : isRegistered
+        ? "Iscritto"
+        : "Partecipo";
+  });
+
+  eventGrid.querySelectorAll("[data-event-status-id]").forEach((node) => {
+    const eventId = node.dataset.eventStatusId || "";
+    node.textContent = registeredEventIds.has(eventId)
+      ? "Sei gia registrato a questo torneo."
+      : "";
+  });
+};
+
+const syncTournamentRegistrations = (user) => {
+  unsubscribeEventRegistrations?.();
+  unsubscribeEventRegistrations = null;
+  registeredEventIds = new Set();
+  updateTournamentRegistrationUi();
+
+  if (!eventGrid || !user) {
+    return;
+  }
+
+  const registrationsQuery = query(
+    collection(db, "eventRegistrations"),
+    where("uid", "==", user.uid)
+  );
+
+  unsubscribeEventRegistrations = onSnapshot(
+    registrationsQuery,
+    (snapshot) => {
+      registeredEventIds = new Set(
+        snapshot.docs
+          .map((docSnap) => docSnap.data().eventId)
+          .filter(Boolean)
+      );
+      updateTournamentRegistrationUi();
+    },
+    () => {
+      registeredEventIds = new Set();
+      updateTournamentRegistrationUi();
+    }
+  );
+};
 
 const setLoginFlag = (value) => {
   const flag = value ? "true" : "false";
@@ -174,8 +254,6 @@ const populateProfileForm = (profile = {}) => {
   profileLastNameInput.value = profile.lastName || "";
   profileNicknameInput.value = profile.nickname || "";
   profileCityInput.value = profile.city || "";
-  profileFavoriteBeyInput.value = profile.favoriteBey || "";
-  profileBioInput.value = profile.bio || "";
   profileTournamentsInput.value = profile.tournamentsPlayed || 0;
 };
 
@@ -408,8 +486,6 @@ if (
   profileLastNameInput &&
   profileNicknameInput &&
   profileCityInput &&
-  profileFavoriteBeyInput &&
-  profileBioInput &&
   profileTournamentsInput
 ) {
   profileForm.addEventListener("submit", async (event) => {
@@ -431,8 +507,6 @@ if (
         lastName: profileLastNameInput.value.trim(),
         nickname: profileNicknameInput.value.trim(),
         city: profileCityInput.value.trim(),
-        favoriteBey: profileFavoriteBeyInput.value.trim(),
-        bio: profileBioInput.value.trim(),
         tournamentsPlayed,
         experiencePoints,
         currentBelt,
@@ -559,6 +633,63 @@ if (memberTrainingGrid) {
   );
 }
 
+if (eventGrid) {
+  eventGrid.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-register-event-id]");
+    if (!button) {
+      return;
+    }
+
+    const user = auth.currentUser;
+    if (!user) {
+      alert("Devi essere loggato per partecipare ai tornei.");
+      return;
+    }
+
+    const eventId = button.dataset.registerEventId || "";
+    if (!eventId || registeredEventIds.has(eventId) || activeTournamentRegistrationId) {
+      return;
+    }
+
+    activeTournamentRegistrationId = eventId;
+    updateTournamentRegistrationUi();
+
+    try {
+      const response = await registerForChallongeTournament({ eventId });
+      const result = response.data || {};
+
+      if (result.registered || result.alreadyRegistered) {
+        registeredEventIds = new Set([...registeredEventIds, eventId]);
+      }
+
+      updateTournamentRegistrationUi();
+
+      const statusNode = eventGrid.querySelector(
+        `[data-event-status-id="${CSS.escape(eventId)}"]`
+      );
+      if (statusNode) {
+        statusNode.textContent = result.alreadyRegistered
+          ? "Risulti gia registrato su Challonge."
+          : "Registrazione completata su Challonge.";
+      }
+    } catch (error) {
+      const statusNode = eventGrid.querySelector(
+        `[data-event-status-id="${CSS.escape(eventId)}"]`
+      );
+      if (statusNode) {
+        statusNode.textContent =
+          error?.message || "Registrazione al torneo non riuscita.";
+      }
+      alert(
+        error?.message || "Registrazione al torneo non riuscita."
+      );
+    } finally {
+      activeTournamentRegistrationId = "";
+      updateTournamentRegistrationUi();
+    }
+  });
+}
+
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     await ensureUserDoc(user);
@@ -577,6 +708,7 @@ onAuthStateChanged(auth, async (user) => {
     setAuthStatus(`Stato: loggato (${label}).`, true);
     setLoginFlag(true);
     syncAdminFlag(user);
+    syncTournamentRegistrations(user);
     unlockSite();
     if (isLoginPage) {
       const destination =
@@ -587,11 +719,16 @@ onAuthStateChanged(auth, async (user) => {
   } else {
     unsubscribeCurrentUserProfile?.();
     unsubscribeCurrentUserProfile = null;
+    unsubscribeEventRegistrations?.();
+    unsubscribeEventRegistrations = null;
     currentUserProfile = {};
+    registeredEventIds = new Set();
+    activeTournamentRegistrationId = "";
     setAuthStatus("Stato: non autenticato.", false);
     setLoginFlag(false);
     syncAdminFlag(null);
     renderHeaderUser(null);
+    updateTournamentRegistrationUi();
     redirectToLogin();
   }
 });

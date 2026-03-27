@@ -33,7 +33,7 @@
   <main>
     <section class="page-hero">
       <h1>Admin</h1>
-      <p>Accedi per gestire patentini arbitro, eventi e trofei. Tutto resta salvato localmente nel browser.</p>
+      <p>Accedi per gestire patentini arbitro, allenamenti, trofei e importare i tornei direttamente da Challonge.</p>
     </section>
 
     <section class="admin-layout">
@@ -65,20 +65,20 @@
             <button class="cta" type="submit">Aggiungi arbitro</button>
           </form>
           <form class="admin-form" id="event-form">
-            <h3>Nuovo evento</h3>
+            <h3>Importa torneo Challonge</h3>
             <label>
-              Data e luogo
-              <input type="text" id="event-date" placeholder="12 Aprile 2024 · Ravenna" required />
+              Link Challonge
+              <input
+                type="url"
+                id="event-challonge-url"
+                placeholder="https://challonge.com/nome_torneo"
+                required
+              />
             </label>
-            <label>
-              Titolo
-              <input type="text" id="event-title" placeholder="Nome torneo" required />
-            </label>
-            <label>
-              Descrizione
-              <textarea id="event-desc" rows="3" placeholder="Dettagli evento" required></textarea>
-            </label>
-            <button class="cta" type="submit">Aggiungi evento</button>
+            <button class="cta" type="submit">Importa torneo</button>
+            <p class="form-note" id="event-sync-status">
+              Incolla il link del torneo e il sito aggiorna automaticamente titolo, stato e partecipanti.
+            </p>
           </form>
 
           <form class="admin-form" id="training-form">
@@ -155,7 +155,7 @@
   </main>
 
   <footer class="site-footer">
-    <p>Area privata del club. Condividi la password solo con lo staff.</p>
+    <p>Area privata del club. I tornei possono essere sincronizzati da Challonge solo con account admin autorizzato.</p>
     <a class="whatsapp-link" href="https://chat.whatsapp.com/KB9i8q9AjGL2bUya3xvLXv">
       <img class="whatsapp-icon" src="images/whatsapp.png" alt="" />
       Entra nel gruppo WhatsApp

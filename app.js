@@ -62,6 +62,14 @@ let firestore = null;
 let firebaseReady = false;
 let firebaseLoading = false;
 
+const escapeHtml = (value) =>
+  String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+
 const initFirestore = () => {
   if (firebaseReady) {
     return true;
@@ -185,18 +193,50 @@ const renderEvents = () => {
       return;
     }
     grid.innerHTML = events
-      .map(
-        (event) => `
+      .map((event) => {
+        const title = escapeHtml(event.title);
+        const date = escapeHtml(event.date);
+        const description = escapeHtml(event.description);
+        const stateLabel = escapeHtml(event.stateLabel);
+        const participantCount = Number.isFinite(event.participantCount)
+          ? `${event.participantCount} partecipanti`
+          : "";
+        const typeLabel = escapeHtml(event.tournamentType);
+        const sourceUrl = escapeHtml(event.sourceUrl);
+        const meta = [stateLabel, participantCount, typeLabel].filter(Boolean);
+
+        return `
           <article class="event-card">
             <div>
-              <p class="event-date">${event.date || ""}</p>
-              <h2>${event.title || ""}</h2>
-              <p>${event.description || ""}</p>
+              <p class="event-date">${date}</p>
+              <h2>${title}</h2>
+              <p>${description}</p>
+              ${
+                meta.length
+                  ? `<p class="event-meta">${meta.join(" · ")}</p>`
+                  : ""
+              }
             </div>
-            <button class="cta" data-event="${event.title || ""}">Partecipo</button>
+            <div class="event-actions">
+              ${
+                event.source === "challonge"
+                  ? `<button class="cta" type="button" data-register-event-id="${escapeHtml(
+                      event.id
+                    )}">Partecipo</button>`
+                  : `<button class="cta" data-event="${title}">Segui torneo</button>`
+              }
+              ${
+                sourceUrl
+                  ? `<a class="cta ghost" href="${sourceUrl}" target="_blank" rel="noreferrer">Apri su Challonge</a>`
+                  : ""
+              }
+            </div>
+            <p class="event-register-status" data-event-status-id="${escapeHtml(
+              event.id
+            )}"></p>
           </article>
         `
-      )
+      })
       .join("");
 
     const eventButtons = grid.querySelectorAll(".cta[data-event]");
@@ -937,6 +977,7 @@ const adminLogin = document.getElementById("admin-login");
 const adminPanel = document.getElementById("admin-panel");
 const refereeForm = document.getElementById("referee-form");
 const eventForm = document.getElementById("event-form");
+const eventSyncStatus = document.getElementById("event-sync-status");
 const trainingForm = document.getElementById("training-form");
 const trophyForm = document.getElementById("trophy-form");
 const passwordForm = document.getElementById("password-form");
@@ -1003,15 +1044,56 @@ if (adminLogin || adminPanel) {
 }
 
 if (eventForm) {
-  eventForm.addEventListener("submit", (event) => {
+  eventForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!isAdminLoggedIn()) {
       alert("Devi fare login admin per modificare gli eventi.");
       return;
     }
-    const date = document.getElementById("event-date").value.trim();
-    const title = document.getElementById("event-title").value.trim();
-    const description = document.getElementById("event-desc").value.trim();
+
+    const challongeUrlInput = document.getElementById("event-challonge-url");
+    if (challongeUrlInput) {
+      const challongeUrl = challongeUrlInput.value.trim();
+      if (!challongeUrl) {
+        if (eventSyncStatus) {
+          eventSyncStatus.textContent = "Incolla un link Challonge valido.";
+        }
+        return;
+      }
+
+      if (eventSyncStatus) {
+        eventSyncStatus.textContent = "Importazione Challonge in corso...";
+      }
+
+      try {
+        if (typeof window.kobraKayImportTournament !== "function") {
+          throw new Error("import-unavailable");
+        }
+        const result = await window.kobraKayImportTournament(challongeUrl);
+        if (eventSyncStatus) {
+          eventSyncStatus.textContent = `Torneo importato: ${result.title}`;
+        }
+        eventForm.reset();
+      } catch (error) {
+        if (eventSyncStatus) {
+          eventSyncStatus.textContent =
+            error.message === "import-unavailable"
+              ? "Funzione Challonge non disponibile. Devi deployare le Firebase Functions."
+              : error.message || "Importazione Challonge non riuscita.";
+        }
+      }
+      return;
+    }
+
+    const dateInput = document.getElementById("event-date");
+    const titleInput = document.getElementById("event-title");
+    const descInput = document.getElementById("event-desc");
+    if (!dateInput || !titleInput || !descInput) {
+      return;
+    }
+    const date = dateInput.value.trim();
+    const title = titleInput.value.trim();
+    const description = descInput.value.trim();
     if (firestore) {
       firestore.collection("events").add({
         date,
