@@ -123,22 +123,28 @@ const seedCollectionOnce = async (name, defaults) => {
   if (!firestore) {
     return;
   }
-  const metaRef = firestore.collection("meta").doc("seed");
-  const metaSnap = await metaRef.get();
-  const meta = metaSnap.exists ? metaSnap.data() : {};
-  if (meta && meta[name]) {
-    return;
-  }
-  const batch = firestore.batch();
-  defaults.forEach((item, index) => {
-    const ref = firestore.collection(name).doc(`default-${index + 1}`);
-    batch.set(ref, {
-      ...item,
-      createdAt: window.firebase.firestore.FieldValue.serverTimestamp(),
+  try {
+    const metaRef = firestore.collection("meta").doc("seed");
+    const metaSnap = await metaRef.get();
+    const meta = metaSnap.exists ? metaSnap.data() : {};
+    if (meta && meta[name]) {
+      return;
+    }
+    const batch = firestore.batch();
+    defaults.forEach((item, index) => {
+      const ref = firestore.collection(name).doc(`default-${index + 1}`);
+      batch.set(ref, {
+        ...item,
+        createdAt: window.firebase.firestore.FieldValue.serverTimestamp(),
+      });
     });
-  });
-  batch.set(metaRef, { ...meta, [name]: true }, { merge: true });
-  await batch.commit();
+    batch.set(metaRef, { ...meta, [name]: true }, { merge: true });
+    await batch.commit();
+  } catch (error) {
+    if (error?.code !== "permission-denied") {
+      throw error;
+    }
+  }
 };
 
 const subscribeCollection = (name, onData) => {
@@ -149,13 +155,18 @@ const subscribeCollection = (name, onData) => {
   firestore
     .collection(name)
     .orderBy("createdAt", "desc")
-    .onSnapshot((snapshot) => {
-      const items = snapshot.docs.map((docSnap) => ({
-        id: docSnap.id,
-        ...docSnap.data(),
-      }));
-      onData(items);
-    });
+    .onSnapshot(
+      (snapshot) => {
+        const items = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
+        }));
+        onData(items);
+      },
+      () => {
+        onData([]);
+      }
+    );
 };
 
 const isAdminLoggedIn = () =>
@@ -989,8 +1000,11 @@ if (adminLogin && adminPasswordInput) {
   const savedPassword =
     localStorage.getItem(STORAGE.adminPassword) || "myagiadmin";
 
-  sessionStorage.removeItem("myagi_admin_logged_in");
-  hideAdminPanel();
+  if (isAdminLoggedIn()) {
+    showAdminPanel();
+  } else {
+    hideAdminPanel();
+  }
 
   adminLogin.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -1002,8 +1016,6 @@ if (adminLogin && adminPasswordInput) {
       alert("Password errata.");
     }
   });
-
-  hideAdminPanel();
 }
 
 if (eventForm) {

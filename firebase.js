@@ -49,6 +49,7 @@ const emailRegisterButton = document.getElementById("email-register");
 const emailLoginButton = document.getElementById("email-login");
 const authStatus = document.getElementById("auth-status");
 const logoutUserButton = document.getElementById("logout-button");
+const siteHeader = document.querySelector(".site-header");
 const postForm = document.getElementById("post-form");
 const postNameInput = document.getElementById("post-name");
 const postMessageInput = document.getElementById("post-message");
@@ -57,6 +58,7 @@ const postNote = document.getElementById("post-note");
 const memberCount = document.getElementById("member-count");
 
 const googleProvider = new GoogleAuthProvider();
+const ADMIN_EMAILS = ["mrpinkukulele@gmail.com"];
 const currentPage = window.location.pathname.split("/").pop() || "index.html";
 const isLoginPage = currentPage === "index.html" || currentPage === "login.html";
 const nextPage = new URLSearchParams(window.location.search).get("next");
@@ -65,6 +67,45 @@ const setLoginFlag = (value) => {
   const flag = value ? "true" : "false";
   localStorage.setItem("myagi_logged_in", flag);
   sessionStorage.setItem("myagi_logged_in", flag);
+};
+
+const syncAdminFlag = (user) => {
+  const normalizedEmail = (user?.email || "").trim().toLowerCase();
+  if (ADMIN_EMAILS.includes(normalizedEmail)) {
+    sessionStorage.setItem("myagi_admin_logged_in", "true");
+    return;
+  }
+  sessionStorage.removeItem("myagi_admin_logged_in");
+};
+
+const getUserLabel = (user) => {
+  if (!user) {
+    return "";
+  }
+  if (user.displayName && user.displayName.trim()) {
+    return user.displayName.trim();
+  }
+  if (user.email && user.email.includes("@")) {
+    return user.email.split("@")[0];
+  }
+  return user.email || user.phoneNumber || "Membro";
+};
+
+const renderHeaderUser = (user) => {
+  if (!siteHeader) {
+    return;
+  }
+  const existing = siteHeader.querySelector(".user-badge");
+  if (!user) {
+    existing?.remove();
+    return;
+  }
+  const badge = existing || document.createElement("div");
+  badge.className = "user-badge";
+  badge.textContent = getUserLabel(user);
+  if (!existing) {
+    siteHeader.appendChild(badge);
+  }
 };
 
 const setAuthStatus = (text, loggedIn) => {
@@ -271,6 +312,8 @@ onAuthStateChanged(auth, async (user) => {
     const label = user.email || user.phoneNumber || "utente";
     setAuthStatus(`Stato: loggato (${label}).`, true);
     setLoginFlag(true);
+    syncAdminFlag(user);
+    renderHeaderUser(user);
     unlockSite();
     if (isLoginPage) {
       const destination =
@@ -281,6 +324,8 @@ onAuthStateChanged(auth, async (user) => {
   } else {
     setAuthStatus("Stato: non autenticato.", false);
     setLoginFlag(false);
+    syncAdminFlag(null);
+    renderHeaderUser(null);
     redirectToLogin();
   }
 });
