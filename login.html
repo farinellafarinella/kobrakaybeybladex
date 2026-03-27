@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login | Kobra Kay Bleyblade X</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <section class="auth-gate" id="auth-gate">
+    <div class="auth-gate-card">
+      <p class="eyebrow">Accesso richiesto</p>
+      <h1>Entra nei Kobra Kay</h1>
+      <p class="lead">
+        Effettua il login per entrare nel sito. Puoi accedere con Google oppure con email e password.
+      </p>
+
+      <button class="cta google-login" id="google-login" type="button">
+        Accedi con Google
+      </button>
+
+      <div class="auth-panel active" id="auth-email">
+        <label>
+          Email
+          <input type="email" id="auth-email-input" placeholder="nome@email.it" />
+        </label>
+        <label>
+          Password
+          <input type="password" id="auth-password-input" placeholder="Almeno 6 caratteri" />
+        </label>
+        <div class="auth-actions">
+          <button class="cta" id="email-register" type="button">Registrati</button>
+          <button class="cta ghost" id="email-login" type="button">Accedi</button>
+        </div>
+      </div>
+
+      <div class="auth-status" id="auth-status">
+        <p>Stato: non autenticato.</p>
+      </div>
+    </div>
+  </section>
+
+  <script type="module" src="firebase.js"></script>
+</body>
+</html>
