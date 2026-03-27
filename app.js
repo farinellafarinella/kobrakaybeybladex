@@ -941,7 +941,6 @@ if (form && bladeSelect && ratchetSelect && bitSelect && results) {
 
 const adminLogin = document.getElementById("admin-login");
 const adminPanel = document.getElementById("admin-panel");
-const adminPasswordInput = document.getElementById("admin-password");
 const refereeForm = document.getElementById("referee-form");
 const eventForm = document.getElementById("event-form");
 const trainingForm = document.getElementById("training-form");
@@ -996,26 +995,17 @@ const hideAdminPanel = () => {
   setAdminFormsEnabled(false);
 };
 
-if (adminLogin && adminPasswordInput) {
-  const savedPassword =
-    localStorage.getItem(STORAGE.adminPassword) || "myagiadmin";
-
+const refreshAdminVisibility = () => {
   if (isAdminLoggedIn()) {
     showAdminPanel();
   } else {
     hideAdminPanel();
   }
+};
 
-  adminLogin.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const input = adminPasswordInput.value.trim();
-    if (input === savedPassword) {
-      sessionStorage.setItem("myagi_admin_logged_in", "true");
-      showAdminPanel();
-    } else {
-      alert("Password errata.");
-    }
-  });
+if (adminLogin || adminPanel) {
+  refreshAdminVisibility();
+  window.addEventListener("admin-auth-change", refreshAdminVisibility);
 }
 
 if (eventForm) {

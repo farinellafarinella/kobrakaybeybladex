@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Il mio profilo | Kobra Kay Bleyblade X</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-protected="true">
+  <header class="site-header">
+    <div class="brand">
+      <img class="brand-logo" src="images/logo-club.png" alt="Logo Kobra Kay Bleyblade X" />
+      <div>
+        <p class="brand-title">Kobra Kay Bleyblade X</p>
+        <p class="brand-subtitle">Club Beyblade Emilia Romagna</p>
+      </div>
+    </div>
+    <nav class="site-nav">
+      <a href="home.html">Unisciti al club</a>
+      <a class="active" href="il-mio-profilo.html">Il mio profilo</a>
+      <a href="tornei.html">Tornei e eventi</a>
+      <a href="trofei.html">Trofei</a>
+      <a href="crea-bey.html">Crea il tuo bey</a>
+      <a href="allenamenti.html">Allenamenti settimanali</a>
+      <a href="la-mia-cintura.html">Patentino arbitro</a>
+      <a href="team.html">Bacheca membri</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="page-hero">
+      <h1>Il mio profilo</h1>
+      <p>Completa il tuo profilo membro. Ogni nuovo profilo parte con cintura bianca e guadagna esperienza partecipando ai tornei.</p>
+    </section>
+
+    <section class="creator-layout">
+      <form class="creator-form" id="profile-form">
+        <h2>Dati profilo</h2>
+        <label>
+          Nome
+          <input type="text" id="profile-first-name" placeholder="Nome" />
+        </label>
+        <label>
+          Cognome
+          <input type="text" id="profile-last-name" placeholder="Cognome" />
+        </label>
+        <label>
+          Nickname
+          <input type="text" id="profile-nickname" placeholder="Nickname in arena" />
+        </label>
+        <label>
+          Citta
+          <input type="text" id="profile-city" placeholder="Citta" />
+        </label>
+        <label>
+          Bey preferito
+          <input type="text" id="profile-favorite-bey" placeholder="Es. Dran Buster 1-60A" />
+        </label>
+        <label>
+          Bio
+          <textarea id="profile-bio" rows="4" placeholder="Parla del tuo stile, combo e obiettivi"></textarea>
+        </label>
+        <label>
+          Tornei disputati
+          <input type="number" id="profile-tournaments" min="0" step="1" value="0" />
+        </label>
+        <button class="cta" type="submit">Salva profilo</button>
+        <p class="form-note" id="profile-save-status">Aggiorna i tuoi dati membro quando vuoi.</p>
+      </form>
+
+      <div class="creator-results profile-summary">
+        <h2>Stato membro</h2>
+        <div class="profile-belt" id="profile-belt">Bianca</div>
+        <div class="profile-metrics">
+          <div class="profile-metric">
+            <span class="profile-metric-label">Nome profilo</span>
+            <strong id="profile-display-name">Membro Kobra Kay</strong>
+          </div>
+          <div class="profile-metric">
+            <span class="profile-metric-label">Email</span>
+            <strong id="profile-email">-</strong>
+          </div>
+          <div class="profile-metric">
+            <span class="profile-metric-label">Esperienza</span>
+            <strong id="profile-xp">0 XP</strong>
+          </div>
+          <div class="profile-metric">
+            <span class="profile-metric-label">Tornei disputati</span>
+            <strong id="profile-tournaments-count">0</strong>
+          </div>
+        </div>
+        <p class="form-note">Ogni torneo disputato vale 100 punti esperienza.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Costruisci il tuo percorso nel club e tieni aggiornato il tuo profilo.</p>
+    <a class="whatsapp-link" href="https://chat.whatsapp.com/KB9i8q9AjGL2bUya3xvLXv">
+      <img class="whatsapp-icon" src="images/whatsapp.png" alt="" />
+      Entra nel gruppo WhatsApp
+    </a>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="app.js"></script>
+  <script type="module" src="firebase.js"></script>
+</body>
+</html>

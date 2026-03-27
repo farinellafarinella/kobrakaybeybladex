@@ -117,6 +117,46 @@ main {
   white-space: nowrap;
 }
 
+.profile-summary {
+  display: grid;
+  gap: 18px;
+}
+
+.profile-belt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(253, 244, 25, 0.45);
+  background: rgba(253, 244, 25, 0.1);
+  color: var(--ember);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.profile-metrics {
+  display: grid;
+  gap: 12px;
+}
+
+.profile-metric {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.profile-metric-label {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
 .hero {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));

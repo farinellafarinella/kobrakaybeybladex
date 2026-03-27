@@ -56,12 +56,29 @@ const postMessageInput = document.getElementById("post-message");
 const postList = document.getElementById("post-list");
 const postNote = document.getElementById("post-note");
 const memberCount = document.getElementById("member-count");
+const profileForm = document.getElementById("profile-form");
+const profileFirstNameInput = document.getElementById("profile-first-name");
+const profileLastNameInput = document.getElementById("profile-last-name");
+const profileNicknameInput = document.getElementById("profile-nickname");
+const profileCityInput = document.getElementById("profile-city");
+const profileFavoriteBeyInput = document.getElementById("profile-favorite-bey");
+const profileBioInput = document.getElementById("profile-bio");
+const profileTournamentsInput = document.getElementById("profile-tournaments");
+const profileSaveStatus = document.getElementById("profile-save-status");
+const profileDisplayName = document.getElementById("profile-display-name");
+const profileEmail = document.getElementById("profile-email");
+const profileBelt = document.getElementById("profile-belt");
+const profileXp = document.getElementById("profile-xp");
+const profileTournamentsCount = document.getElementById(
+  "profile-tournaments-count"
+);
 
 const googleProvider = new GoogleAuthProvider();
 const ADMIN_EMAILS = ["mrpinkukulele@gmail.com"];
 const currentPage = window.location.pathname.split("/").pop() || "index.html";
 const isLoginPage = currentPage === "index.html" || currentPage === "login.html";
 const nextPage = new URLSearchParams(window.location.search).get("next");
+let unsubscribeCurrentUserProfile = null;
 
 const setLoginFlag = (value) => {
   const flag = value ? "true" : "false";
@@ -73,14 +90,23 @@ const syncAdminFlag = (user) => {
   const normalizedEmail = (user?.email || "").trim().toLowerCase();
   if (ADMIN_EMAILS.includes(normalizedEmail)) {
     sessionStorage.setItem("myagi_admin_logged_in", "true");
-    return;
+  } else {
+    sessionStorage.removeItem("myagi_admin_logged_in");
   }
-  sessionStorage.removeItem("myagi_admin_logged_in");
+  window.dispatchEvent(new CustomEvent("admin-auth-change"));
 };
 
-const getUserLabel = (user) => {
+const getUserLabel = (user, profile = {}) => {
   if (!user) {
     return "";
+  }
+  const firstName = (profile.firstName || "").trim();
+  const lastName = (profile.lastName || "").trim();
+  if (firstName || lastName) {
+    return `${firstName} ${lastName}`.trim();
+  }
+  if (profile.nickname && profile.nickname.trim()) {
+    return profile.nickname.trim();
   }
   if (user.displayName && user.displayName.trim()) {
     return user.displayName.trim();
@@ -91,7 +117,7 @@ const getUserLabel = (user) => {
   return user.email || user.phoneNumber || "Membro";
 };
 
-const renderHeaderUser = (user) => {
+const renderHeaderUser = (user, profile = {}) => {
   if (!siteHeader) {
     return;
   }
@@ -102,10 +128,66 @@ const renderHeaderUser = (user) => {
   }
   const badge = existing || document.createElement("div");
   badge.className = "user-badge";
-  badge.textContent = getUserLabel(user);
+  badge.textContent = getUserLabel(user, profile);
   if (!existing) {
     siteHeader.appendChild(badge);
   }
+};
+
+const getExperienceFromTournaments = (count) =>
+  Math.max(0, Number.parseInt(count || 0, 10) || 0) * 100;
+
+const getBeltFromExperience = (experience) => {
+  if (experience >= 1400) {
+    return "Nera";
+  }
+  if (experience >= 1000) {
+    return "Marrone";
+  }
+  if (experience >= 700) {
+    return "Blu";
+  }
+  if (experience >= 450) {
+    return "Verde";
+  }
+  if (experience >= 250) {
+    return "Arancione";
+  }
+  if (experience >= 100) {
+    return "Gialla";
+  }
+  return "Bianca";
+};
+
+const populateProfileForm = (profile = {}) => {
+  if (!profileForm) {
+    return;
+  }
+  profileFirstNameInput.value = profile.firstName || "";
+  profileLastNameInput.value = profile.lastName || "";
+  profileNicknameInput.value = profile.nickname || "";
+  profileCityInput.value = profile.city || "";
+  profileFavoriteBeyInput.value = profile.favoriteBey || "";
+  profileBioInput.value = profile.bio || "";
+  profileTournamentsInput.value = profile.tournamentsPlayed || 0;
+};
+
+const renderProfileSummary = (user, profile = {}) => {
+  if (!profileDisplayName) {
+    return;
+  }
+  const tournamentsPlayed =
+    Number.parseInt(profile.tournamentsPlayed || 0, 10) || 0;
+  const experiencePoints =
+    Number.parseInt(profile.experiencePoints || 0, 10) ||
+    getExperienceFromTournaments(tournamentsPlayed);
+  const currentBelt = profile.currentBelt || getBeltFromExperience(experiencePoints);
+
+  profileDisplayName.textContent = getUserLabel(user, profile) || "Membro Kobra Kay";
+  profileEmail.textContent = user?.email || "-";
+  profileBelt.textContent = currentBelt;
+  profileXp.textContent = `${experiencePoints} XP`;
+  profileTournamentsCount.textContent = `${tournamentsPlayed}`;
 };
 
 const setAuthStatus = (text, loggedIn) => {
@@ -249,6 +331,41 @@ if (logoutUserButton) {
   });
 }
 
+if (profileForm) {
+  profileForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const user = auth.currentUser;
+    if (!user) {
+      return;
+    }
+
+    const tournamentsPlayed =
+      Number.parseInt(profileTournamentsInput.value || 0, 10) || 0;
+    const experiencePoints = getExperienceFromTournaments(tournamentsPlayed);
+    const currentBelt = getBeltFromExperience(experiencePoints);
+
+    await setDoc(
+      doc(db, "users", user.uid),
+      {
+        firstName: profileFirstNameInput.value.trim(),
+        lastName: profileLastNameInput.value.trim(),
+        nickname: profileNicknameInput.value.trim(),
+        city: profileCityInput.value.trim(),
+        favoriteBey: profileFavoriteBeyInput.value.trim(),
+        bio: profileBioInput.value.trim(),
+        tournamentsPlayed,
+        experiencePoints,
+        currentBelt,
+      },
+      { merge: true }
+    );
+
+    if (profileSaveStatus) {
+      profileSaveStatus.textContent = "Profilo aggiornato.";
+    }
+  });
+}
+
 if (postForm && postList) {
   postForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -309,11 +426,20 @@ if (memberCount) {
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     await ensureUserDoc(user);
+    unsubscribeCurrentUserProfile?.();
+    unsubscribeCurrentUserProfile = onSnapshot(
+      doc(db, "users", user.uid),
+      (snapshot) => {
+        const profile = snapshot.exists() ? snapshot.data() : {};
+        renderHeaderUser(user, profile);
+        populateProfileForm(profile);
+        renderProfileSummary(user, profile);
+      }
+    );
     const label = user.email || user.phoneNumber || "utente";
     setAuthStatus(`Stato: loggato (${label}).`, true);
     setLoginFlag(true);
     syncAdminFlag(user);
-    renderHeaderUser(user);
     unlockSite();
     if (isLoginPage) {
       const destination =
@@ -322,6 +448,8 @@ onAuthStateChanged(auth, async (user) => {
       return;
     }
   } else {
+    unsubscribeCurrentUserProfile?.();
+    unsubscribeCurrentUserProfile = null;
     setAuthStatus("Stato: non autenticato.", false);
     setLoginFlag(false);
     syncAdminFlag(null);
