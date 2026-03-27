@@ -322,7 +322,7 @@ h3 {
   align-items: start;
 }
 
-.belt-layout {
+.referee-layout {
   display: grid;
   grid-template-columns: minmax(240px, 1fr) minmax(260px, 1fr);
   gap: 24px;
@@ -339,7 +339,7 @@ h3 {
   gap: 14px;
 }
 
-.belt-card {
+.referee-card {
   background: #121212;
   padding: 24px;
   border-radius: var(--radius-md);
@@ -349,12 +349,12 @@ h3 {
   gap: 14px;
 }
 
-.belt-card h2 {
+.referee-card h2 {
   font-family: "Unbounded", system-ui, sans-serif;
   margin-bottom: 6px;
 }
 
-.belt-steps {
+.referee-steps {
   list-style: none;
   display: grid;
   gap: 8px;
@@ -362,7 +362,7 @@ h3 {
   margin: 0;
 }
 
-.belt-steps li {
+.referee-steps li {
   padding: 10px 12px;
   border-radius: 12px;
   background: rgba(247, 198, 0, 0.08);
@@ -370,18 +370,18 @@ h3 {
   font-weight: 600;
 }
 
-.belt-list {
+.referee-list {
   display: grid;
   gap: 10px;
 }
 
-.belt-filters {
+.referee-filters {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.belt-filter {
+.referee-filter {
   border: 1px solid var(--ember);
   background: var(--ember);
   color: #0b0b0b;
@@ -391,12 +391,12 @@ h3 {
   cursor: pointer;
 }
 
-.belt-filter.active {
+.referee-filter.active {
   background: var(--ember);
   color: #0b0b0b;
 }
 
-.belt-item {
+.referee-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -407,7 +407,7 @@ h3 {
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.belt-badge {
+.referee-badge {
   padding: 6px 10px;
   border-radius: 999px;
   border: 1px solid rgba(247, 198, 0, 0.6);
@@ -465,6 +465,31 @@ h3 {
   display: grid;
   gap: 10px;
   margin-top: 14px;
+}
+
+.round-block {
+  margin-top: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.round-title {
+  font-size: 1.1rem;
+}
+
+.match-list {
+  list-style: none;
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+}
+
+.match-card {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .result-pill {
@@ -640,6 +665,36 @@ h3 {
   font-size: 0.9rem;
 }
 
+body[data-protected="true"] {
+  visibility: hidden;
+}
+
+body[data-protected="true"].auth-ready {
+  visibility: visible;
+}
+
+.auth-gate {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 40px 6vw;
+}
+
+.auth-gate-card {
+  width: min(100%, 560px);
+  background: #121212;
+  border-radius: var(--radius-md);
+  padding: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 16px;
+}
+
+#site-shell[hidden] {
+  display: none !important;
+}
+
 .auth-board {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -750,6 +805,11 @@ h3 {
   color: #0b0b0b;
 }
 
+.google-login {
+  width: 100%;
+  justify-content: center;
+}
+
 .auth-status {
   display: flex;
   flex-direction: column;
@@ -851,7 +911,7 @@ h3 {
     grid-template-columns: 1fr;
   }
 
-  .belt-layout {
+  .referee-layout {
     grid-template-columns: 1fr;
   }
 

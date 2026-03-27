@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>La mia cintura | Kobra Kay Bleyblade X</title>
+  <title>Patentino arbitro | Kobra Kay Bleyblade X</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body data-protected="true">
   <header class="site-header">
     <div class="brand">
       <img class="brand-logo" src="images/logo-club.png" alt="Logo Kobra Kay Bleyblade X" />
@@ -24,55 +24,49 @@
       <a href="trofei.html">Trofei</a>
       <a href="crea-bey.html">Crea il tuo bey</a>
       <a href="allenamenti.html">Allenamenti settimanali</a>
-      <a class="active" href="la-mia-cintura.html">La mia cintura</a>
-      <a href="team.html">Condividi il tuo team</a>
+      <a class="active" href="la-mia-cintura.html">Patentino arbitro</a>
+      <a href="team.html">Bacheca membri</a>
     </nav>
   </header>
 
   <main>
     <section class="page-hero">
-      <h1>La mia cintura</h1>
-      <p>Qui trovi i nomi dei Kobra Kay e la cintura attuale, aggiornata ogni 14 giorni.</p>
+      <h1>Patentino arbitro</h1>
+      <p>Qui trovi i membri del club che stanno seguendo o hanno completato il patentino arbitro.</p>
     </section>
 
-    <section class="belt-layout">
-      <div class="belt-card">
-        <h2>Regole della cintura</h2>
+    <section class="referee-layout">
+      <div class="referee-card">
+        <h2>Come funziona</h2>
         <p class="lead">
-          Ogni 14 giorni si organizza un mini torneo interno. La prima meta dei giocatori passa di cintura.
+          Il patentino arbitro viene assegnato dopo sessioni pratiche interne, verifica regolamento e gestione match.
         </p>
-        <ul class="belt-steps">
-          <li>Bianca</li>
-          <li>Gialla</li>
-          <li>Arancione</li>
-          <li>Verde</li>
-          <li>Blu</li>
-          <li>Marrone</li>
-          <li>Nera</li>
+        <ul class="referee-steps">
+          <li>In formazione</li>
+          <li>Assistente arbitro</li>
+          <li>Arbitro club</li>
+          <li>Capo arbitro</li>
         </ul>
-        <p class="form-note">Aggiornamento quindicinale dopo il mini torneo.</p>
+        <p class="form-note">Aggiornamento dopo ogni verifica o prova pratica interna.</p>
       </div>
 
-      <div class="belt-card">
-        <h2>Elenco Kobra Kay</h2>
-        <div class="belt-filters">
-          <button class="belt-filter active" type="button" data-belt="tutte">Tutte</button>
-          <button class="belt-filter" type="button" data-belt="bianca">Bianca</button>
-          <button class="belt-filter" type="button" data-belt="gialla">Gialla</button>
-          <button class="belt-filter" type="button" data-belt="arancione">Arancione</button>
-          <button class="belt-filter" type="button" data-belt="verde">Verde</button>
-          <button class="belt-filter" type="button" data-belt="blu">Blu</button>
-          <button class="belt-filter" type="button" data-belt="marrone">Marrone</button>
-          <button class="belt-filter" type="button" data-belt="nera">Nera</button>
+      <div class="referee-card">
+        <h2>Elenco arbitri</h2>
+        <div class="referee-filters">
+          <button class="referee-filter active" type="button" data-license="tutti">Tutti</button>
+          <button class="referee-filter" type="button" data-license="in-formazione">In formazione</button>
+          <button class="referee-filter" type="button" data-license="assistente-arbitro">Assistente arbitro</button>
+          <button class="referee-filter" type="button" data-license="arbitro-club">Arbitro club</button>
+          <button class="referee-filter" type="button" data-license="capo-arbitro">Capo arbitro</button>
         </div>
-        <div class="belt-list" id="belt-list"></div>
-        <p class="muted" id="belt-empty" hidden>Nessun membro inserito.</p>
+        <div class="referee-list" id="referee-list"></div>
+        <p class="muted" id="referee-empty" hidden>Nessun arbitro inserito.</p>
       </div>
     </section>
   </main>
 
   <footer class="site-footer">
-    <p>Ogni mini torneo interno decide la prossima cintura.</p>
+    <p>Le verifiche interne aggiornano il patentino arbitro del club.</p>
     <a class="whatsapp-link" href="https://chat.whatsapp.com/KB9i8q9AjGL2bUya3xvLXv">
       <img class="whatsapp-icon" src="images/whatsapp.png" alt="" />
       Entra nel gruppo WhatsApp
@@ -82,5 +76,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="app.js"></script>
+  <script type="module" src="firebase.js"></script>
 </body>
 </html>

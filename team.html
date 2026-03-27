@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Condividi il tuo team | Kobra Kay Bleyblade X</title>
+  <title>Bacheca membri | Kobra Kay Bleyblade X</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body data-protected="true">
   <header class="site-header">
     <div class="brand">
       <img class="brand-logo" src="images/logo-club.png" alt="Logo Kobra Kay Bleyblade X" />
@@ -24,42 +24,51 @@
       <a href="trofei.html">Trofei</a>
       <a href="crea-bey.html">Crea il tuo bey</a>
       <a href="allenamenti.html">Allenamenti settimanali</a>
-      <a href="la-mia-cintura.html">La mia cintura</a>
-      <a class="active" href="team.html">Condividi il tuo team</a>
+      <a href="la-mia-cintura.html">Patentino arbitro</a>
+      <a class="active" href="team.html">Bacheca membri</a>
     </nav>
   </header>
 
   <main>
     <section class="page-hero">
-      <h1>Condividi il tuo team</h1>
-      <p>Carica la tua squadra, descrivi le combo e ispira gli altri blader.</p>
+      <h1>Bacheca membri</h1>
+      <p>Area riservata ai membri del club per messaggi, richieste match e aggiornamenti.</p>
     </section>
 
-    <section class="creator-layout">
-      <form class="creator-form">
-        <label>
-          Nome team
-          <input type="text" placeholder="Es. Thunder Spin" />
-        </label>
-        <label>
-          Primo bey
-          <input type="text" placeholder="Es. Keel Shark 1-60T" />
-        </label>
-        <label>
-          Secondo bey
-          <input type="text" placeholder="Es. Arrow Wizard 4-80B" />
-        </label>
-        <label>
-          Terzo bey
-          <input type="text" placeholder="Es. Soar Phoenix 9-60GF" />
-        </label>
-        <button class="cta" type="button">Condividi</button>
-        <p class="form-note">Funzione in arrivo: i team saranno visibili qui sotto.</p>
-      </form>
+    <section class="auth-board">
+      <div class="auth-card">
+        <p class="eyebrow">Stato account</p>
+        <h2>Accesso membri</h2>
+        <div class="auth-status" id="auth-status">
+          <p>Stato: controllo accesso in corso.</p>
+          <p id="member-count">Membri registrati: 0</p>
+          <button class="cta ghost" id="logout-button" type="button" hidden>Logout</button>
+        </div>
+      </div>
 
-      <div class="creator-results">
-        <h2>Team in evidenza</h2>
-        <p class="muted">Nessun team ancora pubblicato.</p>
+      <div class="board-card">
+        <div class="board-head">
+          <p class="eyebrow">Messaggi club</p>
+          <h2>Scrivi in bacheca</h2>
+          <p class="lead">
+            Pubblica avvisi, cerca avversari, condividi aggiornamenti e organizza sessioni con gli altri membri.
+          </p>
+        </div>
+
+        <form class="board-form" id="post-form">
+          <label>
+            Nome visualizzato
+            <input type="text" id="post-name" placeholder="Nome o nickname" />
+          </label>
+          <label>
+            Messaggio
+            <textarea id="post-message" rows="4" placeholder="Scrivi un messaggio per il club"></textarea>
+          </label>
+          <button class="cta" type="submit">Pubblica messaggio</button>
+          <p class="form-note" id="post-note">Devi essere loggato per pubblicare.</p>
+        </form>
+
+        <div class="board-list" id="post-list"></div>
       </div>
     </section>
   </main>
@@ -75,5 +84,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="app.js"></script>
+  <script type="module" src="firebase.js"></script>
 </body>
 </html>

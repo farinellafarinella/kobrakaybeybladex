@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body data-protected="true">
   <header class="site-header">
     <div class="brand">
       <img class="brand-logo" src="images/logo-club.png" alt="Logo Kobra Kay Bleyblade X" />
@@ -24,15 +24,15 @@
       <a href="trofei.html">Trofei</a>
       <a href="crea-bey.html">Crea il tuo bey</a>
       <a href="allenamenti.html">Allenamenti settimanali</a>
-      <a href="la-mia-cintura.html">La mia cintura</a>
-      <a href="team.html">Condividi il tuo team</a>
+      <a href="la-mia-cintura.html">Patentino arbitro</a>
+      <a href="team.html">Bacheca membri</a>
     </nav>
   </header>
 
   <main>
     <section class="page-hero">
       <h1>Admin</h1>
-      <p>Accedi per gestire eventi e trofei. Tutto resta salvato localmente nel browser.</p>
+      <p>Accedi per gestire patentini arbitro, eventi e trofei. Tutto resta salvato localmente nel browser.</p>
     </section>
 
     <section class="admin-layout">
@@ -49,26 +49,23 @@
       <div class="creator-results admin-panel" id="admin-panel" hidden style="display: none;">
         <h2>Gestione contenuti</h2>
         <div class="admin-grid">
-          <form class="admin-form" id="belt-form">
-            <h3>Nuovo membro cintura</h3>
+          <form class="admin-form" id="referee-form">
+            <h3>Nuovo patentino arbitro</h3>
             <label>
-              Nome membro
-              <input type="text" id="belt-name" placeholder="Nome e cognome" required />
+              Nome arbitro
+              <input type="text" id="referee-name" placeholder="Nome e cognome" required />
             </label>
             <label>
-              Cintura
-              <select id="belt-level" required>
-                <option value="">Seleziona cintura</option>
-                <option value="bianca">Bianca</option>
-                <option value="gialla">Gialla</option>
-                <option value="arancione">Arancione</option>
-                <option value="verde">Verde</option>
-                <option value="blu">Blu</option>
-                <option value="marrone">Marrone</option>
-                <option value="nera">Nera</option>
+              Livello patentino
+              <select id="referee-level" required>
+                <option value="">Seleziona livello</option>
+                <option value="in-formazione">In formazione</option>
+                <option value="assistente-arbitro">Assistente arbitro</option>
+                <option value="arbitro-club">Arbitro club</option>
+                <option value="capo-arbitro">Capo arbitro</option>
               </select>
             </label>
-            <button class="cta" type="submit">Aggiungi membro</button>
+            <button class="cta" type="submit">Aggiungi arbitro</button>
           </form>
           <form class="admin-form" id="event-form">
             <h3>Nuovo evento</h3>
@@ -123,8 +120,8 @@
         </div>
 
         <div class="admin-grid">
-          <div class="admin-form" id="belt-list-admin">
-            <h3>Cinture attuali</h3>
+          <div class="admin-form" id="referee-list-admin">
+            <h3>Patentini arbitro attuali</h3>
             <div class="admin-list"></div>
           </div>
           <div class="admin-form" id="event-list">
@@ -171,5 +168,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="app.js"></script>
+  <script type="module" src="firebase.js"></script>
 </body>
 </html>

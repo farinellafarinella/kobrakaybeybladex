@@ -55,13 +55,13 @@ const STORAGE = {
 };
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAOpQpKoGd2HGYih5-yBamk5Q5Lx4XtwC8",
-  authDomain: "myago-do-club.firebaseapp.com",
-  projectId: "myago-do-club",
-  storageBucket: "myago-do-club.firebasestorage.app",
-  messagingSenderId: "933756491648",
-  appId: "1:933756491648:web:e29fef12414d3832c41365",
-  measurementId: "G-RTRBE38TJM",
+  apiKey: "AIzaSyCD4ZnQqwRuUbDsrZ-fKTcn898VsoJoLqM",
+  authDomain: "sito-kobra-kay.firebaseapp.com",
+  projectId: "sito-kobra-kay",
+  storageBucket: "sito-kobra-kay.firebasestorage.app",
+  messagingSenderId: "840574224712",
+  appId: "1:840574224712:web:a5efabae629cfe57468b7d",
+  measurementId: "G-31JPYGWGL1",
 };
 
 let firestore = null;
@@ -273,87 +273,93 @@ renderEvents();
 renderTrainings();
 renderTrophies();
 
-const renderBelts = () => {
-  const beltList = document.getElementById("belt-list");
-  if (!beltList) {
+const REFEREE_LEVELS = [
+  "in-formazione",
+  "assistente-arbitro",
+  "arbitro-club",
+  "capo-arbitro",
+];
+
+const formatRefereeLevel = (level) => {
+  if (!level) {
+    return "";
+  }
+  return level
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+};
+
+const renderReferees = () => {
+  const refereeList = document.getElementById("referee-list");
+  if (!refereeList) {
     return;
   }
   if (!firestore) {
-    beltList.innerHTML =
-      '<div class="creator-results"><p class="muted">Caricamento cinture...</p></div>';
-    ensureFirestore(renderBelts);
+    refereeList.innerHTML =
+      '<div class="creator-results"><p class="muted">Caricamento patentini arbitro...</p></div>';
+    ensureFirestore(renderReferees);
     return;
   }
-  const beltFilters = document.querySelectorAll(".belt-filter");
-  const beltEmpty = document.getElementById("belt-empty");
-  const beltOrder = {
-    bianca: 0,
-    gialla: 1,
-    arancione: 2,
-    verde: 3,
-    blu: 4,
-    marrone: 5,
-    nera: 6,
-  };
-  let activeBelt = "tutte";
+  const refereeFilters = document.querySelectorAll(".referee-filter");
+  const refereeEmpty = document.getElementById("referee-empty");
+  const refereeOrder = Object.fromEntries(
+    REFEREE_LEVELS.map((level, index) => [level, index])
+  );
+  let activeLicense = "tutti";
 
-  const formatBelt = (belt) => {
-    if (!belt) {
-      return "";
-    }
-    return belt.charAt(0).toUpperCase() + belt.slice(1);
-  };
-
-  const applyBeltFilter = (belt) => {
-    const items = beltList.querySelectorAll(".belt-item");
+  const applyRefereeFilter = (licenseLevel) => {
+    const items = refereeList.querySelectorAll(".referee-item");
     items.forEach((item) => {
-      const matches = belt === "tutte" || item.dataset.belt === belt;
+      const matches =
+        licenseLevel === "tutti" || item.dataset.license === licenseLevel;
       item.hidden = !matches;
     });
   };
 
-  if (beltFilters.length) {
-    beltFilters.forEach((button) => {
+  if (refereeFilters.length) {
+    refereeFilters.forEach((button) => {
       button.addEventListener("click", () => {
-        beltFilters.forEach((btn) => btn.classList.remove("active"));
+        refereeFilters.forEach((btn) => btn.classList.remove("active"));
         button.classList.add("active");
-        activeBelt = button.dataset.belt || "tutte";
-        applyBeltFilter(activeBelt);
+        activeLicense = button.dataset.license || "tutti";
+        applyRefereeFilter(activeLicense);
       });
     });
   }
 
-  subscribeCollection("belts", (belts) => {
-    const sorted = [...belts].sort((a, b) => {
-      const aBelt = (a.belt || "").toLowerCase();
-      const bBelt = (b.belt || "").toLowerCase();
-      const orderDiff = (beltOrder[aBelt] ?? 99) - (beltOrder[bBelt] ?? 99);
+  subscribeCollection("refereeLicenses", (referees) => {
+    const sorted = [...referees].sort((a, b) => {
+      const aLevel = (a.licenseLevel || "").toLowerCase();
+      const bLevel = (b.licenseLevel || "").toLowerCase();
+      const orderDiff =
+        (refereeOrder[aLevel] ?? 99) - (refereeOrder[bLevel] ?? 99);
       if (orderDiff !== 0) {
         return orderDiff;
       }
       return (a.name || "").localeCompare(b.name || "", "it");
     });
-    beltList.innerHTML = sorted
+    refereeList.innerHTML = sorted
       .map(
         (member) => `
-          <div class="belt-item" data-belt="${(member.belt || "").toLowerCase()}">
+          <div class="referee-item" data-license="${(member.licenseLevel || "").toLowerCase()}">
             <span>${member.name || ""}</span>
-            <span class="belt-badge">${formatBelt(member.belt || "")}</span>
+            <span class="referee-badge">${formatRefereeLevel(member.licenseLevel || "")}</span>
           </div>
         `
       )
       .join("");
-    if (beltEmpty) {
-      beltEmpty.hidden = sorted.length > 0;
+    if (refereeEmpty) {
+      refereeEmpty.hidden = sorted.length > 0;
     }
-    applyBeltFilter(activeBelt);
+    applyRefereeFilter(activeLicense);
   });
 };
 
-renderBelts();
+renderReferees();
 
 const renderAdminLists = () => {
-  const beltList = document.querySelector("#belt-list-admin .admin-list");
+  const refereeList = document.querySelector("#referee-list-admin .admin-list");
   const eventList = document.querySelector("#event-list .admin-list");
   const trainingList = document.querySelector("#training-list .admin-list");
   const trophyList = document.querySelector("#trophy-list .admin-list");
@@ -393,28 +399,16 @@ const renderAdminLists = () => {
     });
   };
 
-  const renderAdminBelts = () => {
-    if (!beltList) {
+  const renderAdminReferees = () => {
+    if (!refereeList) {
       return;
     }
-    const belts = [
-      "bianca",
-      "gialla",
-      "arancione",
-      "verde",
-      "blu",
-      "marrone",
-      "nera",
-    ];
-    const formatBelt = (belt) =>
-      belt ? belt.charAt(0).toUpperCase() + belt.slice(1) : "";
-
-    subscribeCollection("belts", (items) => {
-      beltList.innerHTML = items
+    subscribeCollection("refereeLicenses", (items) => {
+      refereeList.innerHTML = items
         .map(
           (item) => `
             <div class="admin-item">
-              <span>${item.name || ""} · ${formatBelt(item.belt || "")}</span>
+              <span>${item.name || ""} · ${formatRefereeLevel(item.licenseLevel || "")}</span>
               <div class="admin-actions">
                 <button type="button" class="admin-edit" data-doc-id="${item.id}">Modifica</button>
                 <button type="button" data-doc-id="${item.id}">Elimina</button>
@@ -424,21 +418,21 @@ const renderAdminLists = () => {
         )
         .join("");
 
-      beltList.querySelectorAll("button[data-doc-id]").forEach((button) => {
+      refereeList.querySelectorAll("button[data-doc-id]").forEach((button) => {
         button.addEventListener("click", async () => {
           if (!isAdminLoggedIn()) {
             alert("Devi fare login admin per eliminare.");
             return;
           }
           const docId = button.dataset.docId;
-          await firestore.collection("belts").doc(docId).delete();
+          await firestore.collection("refereeLicenses").doc(docId).delete();
         });
       });
 
-      beltList.querySelectorAll(".admin-edit").forEach((button) => {
+      refereeList.querySelectorAll(".admin-edit").forEach((button) => {
         button.addEventListener("click", async () => {
           if (!isAdminLoggedIn()) {
-            alert("Devi fare login admin per modificare le cinture.");
+            alert("Devi fare login admin per modificare i patentini arbitro.");
             return;
           }
           const docId = button.dataset.docId;
@@ -446,28 +440,25 @@ const renderAdminLists = () => {
           if (!current) {
             return;
           }
-          const newName = prompt(
-            "Nome membro:",
-            current.name || ""
-          );
+          const newName = prompt("Nome arbitro:", current.name || "");
           if (!newName) {
             return;
           }
-          const newBelt = prompt(
-            "Cintura (bianca, gialla, arancione, verde, blu, marrone, nera):",
-            (current.belt || "").toLowerCase()
+          const newLevel = prompt(
+            "Livello patentino (in-formazione, assistente-arbitro, arbitro-club, capo-arbitro):",
+            (current.licenseLevel || "").toLowerCase()
           );
-          if (!newBelt) {
+          if (!newLevel) {
             return;
           }
-          const normalized = newBelt.trim().toLowerCase();
-          if (!belts.includes(normalized)) {
-            alert("Cintura non valida.");
+          const normalized = newLevel.trim().toLowerCase();
+          if (!REFEREE_LEVELS.includes(normalized)) {
+            alert("Livello patentino non valido.");
             return;
           }
-          await firestore.collection("belts").doc(docId).update({
+          await firestore.collection("refereeLicenses").doc(docId).update({
             name: newName.trim(),
-            belt: normalized,
+            licenseLevel: normalized,
           });
         });
       });
@@ -477,7 +468,7 @@ const renderAdminLists = () => {
   renderAdminCollection("events", eventList);
   renderAdminCollection("trainings", trainingList);
   renderAdminCollection("trophies", trophyList);
-  renderAdminBelts();
+  renderAdminReferees();
 };
 
 renderAdminLists();
@@ -940,7 +931,7 @@ if (form && bladeSelect && ratchetSelect && bitSelect && results) {
 const adminLogin = document.getElementById("admin-login");
 const adminPanel = document.getElementById("admin-panel");
 const adminPasswordInput = document.getElementById("admin-password");
-const beltForm = document.getElementById("belt-form");
+const refereeForm = document.getElementById("referee-form");
 const eventForm = document.getElementById("event-form");
 const trainingForm = document.getElementById("training-form");
 const trophyForm = document.getElementById("trophy-form");
@@ -949,7 +940,7 @@ const resetButton = document.getElementById("reset-data");
 const logoutButton = document.getElementById("admin-logout");
 
 const setAdminFormsEnabled = (enabled) => {
-  [beltForm, eventForm, trainingForm, trophyForm, passwordForm].forEach(
+  [refereeForm, eventForm, trainingForm, trophyForm, passwordForm].forEach(
     (form) => {
       if (!form) {
         return;
@@ -961,7 +952,7 @@ const setAdminFormsEnabled = (enabled) => {
     }
   );
   const adminListButtons = document.querySelectorAll(
-    "#belt-list-admin button, #event-list button, #training-list button, #trophy-list button"
+    "#referee-list-admin button, #event-list button, #training-list button, #trophy-list button"
   );
   adminListButtons.forEach((button) => {
     button.disabled = !enabled;
@@ -1037,23 +1028,23 @@ if (eventForm) {
   });
 }
 
-if (beltForm) {
-  beltForm.addEventListener("submit", (event) => {
+if (refereeForm) {
+  refereeForm.addEventListener("submit", (event) => {
     event.preventDefault();
     if (!isAdminLoggedIn()) {
-      alert("Devi fare login admin per modificare le cinture.");
+      alert("Devi fare login admin per modificare i patentini arbitro.");
       return;
     }
-    const name = document.getElementById("belt-name").value.trim();
-    const belt = document.getElementById("belt-level").value.trim();
+    const name = document.getElementById("referee-name").value.trim();
+    const licenseLevel = document.getElementById("referee-level").value.trim();
     if (firestore) {
-      firestore.collection("belts").add({
+      firestore.collection("refereeLicenses").add({
         name,
-        belt,
+        licenseLevel,
         createdAt: window.firebase.firestore.FieldValue.serverTimestamp(),
       });
     }
-    beltForm.reset();
+    refereeForm.reset();
   });
 }
 
@@ -1147,7 +1138,7 @@ if (resetButton) {
     resetCollection("events", defaultEvents);
     resetCollection("trainings", defaultTrainings);
     resetCollection("trophies", defaultTrophies);
-    resetCollection("belts", []);
+    resetCollection("refereeLicenses", []);
   });
 }
 

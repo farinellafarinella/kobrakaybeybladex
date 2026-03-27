@@ -10,6 +10,40 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <section class="auth-gate" id="auth-gate" hidden>
+    <div class="auth-gate-card">
+      <p class="eyebrow">Accesso richiesto</p>
+      <h1>Entra nei Kobra Kay</h1>
+      <p class="lead">
+        Per entrare nel sito devi effettuare il login. Puoi accedere con Google oppure con email e password.
+      </p>
+
+      <button class="cta google-login" id="google-login" type="button">
+        Accedi con Google
+      </button>
+
+      <div class="auth-panel active" id="auth-email">
+        <label>
+          Email
+          <input type="email" id="auth-email-input" placeholder="nome@email.it" />
+        </label>
+        <label>
+          Password
+          <input type="password" id="auth-password-input" placeholder="Almeno 6 caratteri" />
+        </label>
+        <div class="auth-actions">
+          <button class="cta" id="email-register" type="button">Registrati</button>
+          <button class="cta ghost" id="email-login" type="button">Accedi</button>
+        </div>
+      </div>
+
+      <div class="auth-status" id="auth-status">
+        <p>Stato: non autenticato.</p>
+      </div>
+    </div>
+  </section>
+
+  <div id="site-shell" hidden>
   <header class="site-header">
     <div class="brand">
       <img class="brand-logo" src="images/logo-club.png" alt="Logo Kobra Kay Bleyblade X" />
@@ -24,8 +58,8 @@
       <a href="trofei.html">Trofei</a>
       <a href="crea-bey.html">Crea il tuo bey</a>
       <a href="allenamenti.html">Allenamenti settimanali</a>
-      <a href="la-mia-cintura.html">La mia cintura</a>
-      <a href="team.html">Condividi il tuo team</a>
+      <a href="la-mia-cintura.html">Patentino arbitro</a>
+      <a href="team.html">Bacheca membri</a>
     </nav>
   </header>
 
@@ -66,12 +100,12 @@
         <p class="eyebrow">La casa dei blader di zona</p>
         <h1>Unisciti al club <span class="club-name">Kobra Kay Bleyblade X</span></h1>
         <p class="lead">
-          Accettiamo giocatori da Ravenna, Faenza, Forli e Cesena, oltre alle zone limitrofe.
-          Se sei pronto a scendere in arena, presentati con il tuo nome.
+          La quota del club e di 25 euro annui. Se vuoi entrare nei Kobra Kay,
+          presentati con il tuo nome e preparati a scendere in arena.
         </p>
         <div class="hero-tags">
-          <span>Allenamenti settimanali</span>
-          <span>Community attiva</span>
+          <span>25 euro annui</span>
+          <span>Kit Kobra Kay incluso</span>
         </div>
       </div>
     </section>
@@ -79,34 +113,31 @@
     <section class="join-whatsapp">
       <div class="join-card">
         <p class="eyebrow">Unisciti al club</p>
-        <h2>Entra direttamente nel gruppo WhatsApp</h2>
+        <h2>Entra nel club tramite WhatsApp</h2>
         <p class="lead">
-          Clicca il link per unirti subito alla community di <span class="club-name">Kobra Kay Bleyblade X</span>.
+          Con 25 euro annui entri nei <span class="club-name">Kobra Kay Bleyblade X</span> e ricevi subito
+          la maglia, la fascia Kobra Kay e un portadeck.
         </p>
         <a class="cta" href="https://chat.whatsapp.com/KB9i8q9AjGL2bUya3xvLXv">
           Entra nel gruppo
         </a>
-        <p class="form-note">Se hai bisogno, scrivici nel gruppo e ti aiutiamo subito.</p>
+        <p class="form-note">Scrivici nel gruppo WhatsApp per confermare l'iscrizione al club.</p>
       </div>
     </section>
 
     <section class="welcome-kit">
       <div class="join-card">
         <p class="eyebrow">Kit di benvenuto</p>
-        <h2>Ordina il tuo kit di benvenuto</h2>
-        <p class="lead">Nel kit di benvenuto troverai:</p>
+        <h2>Cosa ricevi appena entri</h2>
+        <p class="lead">Con l'iscrizione annuale ricevi subito:</p>
         <ul class="kit-list">
-          <li>Shirt Kobra Kay</li>
-          <li>Deck Kobra Kay</li>
-          <li>Porta deck nero</li>
-          <li>Fondina per il lanciatore</li>
-          <li>Borraccia Kobra Kay</li>
-          <li>Fascia per capelli da karateka</li>
+          <li>Maglia Kobra Kay</li>
+          <li>Fascia Kobra Kay</li>
+          <li>Portadeck</li>
         </ul>
       </div>
     </section>
 
-    
   </main>
 
   <footer class="site-footer">
@@ -117,6 +148,7 @@
       Entra nel gruppo WhatsApp
     </a>
   </footer>
+  </div>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>

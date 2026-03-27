@@ -1,10 +1,14 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  initializeApp,
+  getApp,
+  getApps,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithPhoneNumber,
-  RecaptchaVerifier,
+  GoogleAuthProvider,
+  signInWithPopup,
   onAuthStateChanged,
   signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -21,31 +25,28 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAOpQpKoGd2HGYih5-yBamk5Q5Lx4XtwC8",
-  authDomain: "myago-do-club.firebaseapp.com",
-  projectId: "myago-do-club",
-  storageBucket: "myago-do-club.firebasestorage.app",
-  messagingSenderId: "933756491648",
-  appId: "1:933756491648:web:e29fef12414d3832c41365",
-  measurementId: "G-RTRBE38TJM",
+  apiKey: "AIzaSyCD4ZnQqwRuUbDsrZ-fKTcn898VsoJoLqM",
+  authDomain: "sito-kobra-kay.firebaseapp.com",
+  projectId: "sito-kobra-kay",
+  storageBucket: "sito-kobra-kay.firebasestorage.app",
+  messagingSenderId: "840574224712",
+  appId: "1:840574224712:web:a5efabae629cfe57468b7d",
+  measurementId: "G-31JPYGWGL1",
 };
 
-const firebaseApp = initializeApp(firebaseConfig);
+const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 
 const authTabs = document.querySelectorAll(".auth-tab");
 const authPanels = document.querySelectorAll(".auth-panel");
-const cityInput = document.getElementById("auth-city-input");
+const authGate = document.getElementById("auth-gate");
+const siteShell = document.getElementById("site-shell");
 const emailInput = document.getElementById("auth-email-input");
 const passwordInput = document.getElementById("auth-password-input");
+const googleLoginButton = document.getElementById("google-login");
 const emailRegisterButton = document.getElementById("email-register");
 const emailLoginButton = document.getElementById("email-login");
-const phoneCityInput = document.getElementById("phone-city-input");
-const phoneInput = document.getElementById("phone-input");
-const sendCodeButton = document.getElementById("send-code");
-const smsCodeInput = document.getElementById("sms-code");
-const verifyCodeButton = document.getElementById("verify-code");
 const authStatus = document.getElementById("auth-status");
 const logoutUserButton = document.getElementById("logout-button");
 const postForm = document.getElementById("post-form");
@@ -55,8 +56,10 @@ const postList = document.getElementById("post-list");
 const postNote = document.getElementById("post-note");
 const memberCount = document.getElementById("member-count");
 
-let confirmationResult = null;
-let recaptchaVerifier = null;
+const googleProvider = new GoogleAuthProvider();
+const currentPage = window.location.pathname.split("/").pop() || "index.html";
+const isHomePage = currentPage === "index.html";
+const nextPage = new URLSearchParams(window.location.search).get("next");
 
 const setLoginFlag = (value) => {
   const flag = value ? "true" : "false";
@@ -86,6 +89,42 @@ const setAuthStatus = (text, loggedIn) => {
   }
 };
 
+const lockSite = () => {
+  if (authGate) {
+    authGate.hidden = false;
+  }
+  if (siteShell) {
+    siteShell.hidden = true;
+  }
+  if (document.body.dataset.protected === "true") {
+    document.body.classList.remove("auth-ready");
+  }
+};
+
+const unlockSite = () => {
+  if (authGate) {
+    authGate.hidden = true;
+  }
+  if (siteShell) {
+    siteShell.hidden = false;
+  }
+  if (document.body.dataset.protected === "true") {
+    document.body.classList.add("auth-ready");
+  }
+};
+
+const redirectToLogin = () => {
+  if (isHomePage) {
+    lockSite();
+    return;
+  }
+  const destination =
+    currentPage && currentPage !== "index.html"
+      ? `index.html?next=${encodeURIComponent(currentPage)}`
+      : "index.html";
+  window.location.replace(destination);
+};
+
 const ensureUserDoc = async (user, extra = {}) => {
   if (!user) {
     return;
@@ -97,6 +136,7 @@ const ensureUserDoc = async (user, extra = {}) => {
       uid: user.uid,
       email: user.email || null,
       phone: user.phoneNumber || null,
+      displayName: user.displayName || null,
       createdAt: serverTimestamp(),
       ...extra,
     },
@@ -118,6 +158,18 @@ if (authTabs.length) {
   });
 }
 
+if (googleLoginButton) {
+  googleLoginButton.addEventListener("click", async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      await ensureUserDoc(result.user);
+      setLoginFlag(true);
+    } catch (error) {
+      alert("Accesso Google fallito: " + error.message);
+    }
+  });
+}
+
 if (emailRegisterButton && emailInput && passwordInput) {
   emailRegisterButton.addEventListener("click", async () => {
     try {
@@ -126,9 +178,7 @@ if (emailRegisterButton && emailInput && passwordInput) {
         emailInput.value.trim(),
         passwordInput.value.trim()
       );
-      await ensureUserDoc(result.user, {
-        citta: cityInput ? cityInput.value.trim() : null,
-      });
+      await ensureUserDoc(result.user);
       setLoginFlag(true);
     } catch (error) {
       alert("Registrazione fallita: " + error.message);
@@ -147,48 +197,6 @@ if (emailLoginButton && emailInput && passwordInput) {
       setLoginFlag(true);
     } catch (error) {
       alert("Login fallito: " + error.message);
-    }
-  });
-}
-
-if (sendCodeButton && phoneInput) {
-  sendCodeButton.addEventListener("click", async () => {
-    try {
-      if (!recaptchaVerifier) {
-        recaptchaVerifier = new RecaptchaVerifier(
-          auth,
-          "recaptcha-container",
-          { size: "invisible" }
-        );
-      }
-      confirmationResult = await signInWithPhoneNumber(
-        auth,
-        phoneInput.value.trim(),
-        recaptchaVerifier
-      );
-      alert("Codice inviato via SMS.");
-    } catch (error) {
-      alert("Invio codice fallito: " + error.message);
-    }
-  });
-}
-
-if (verifyCodeButton && smsCodeInput) {
-  verifyCodeButton.addEventListener("click", async () => {
-    if (!confirmationResult) {
-      alert("Prima invia il codice SMS.");
-      return;
-    }
-    try {
-      const result = await confirmationResult.confirm(
-        smsCodeInput.value.trim()
-      );
-      await ensureUserDoc(result.user, {
-        citta: phoneCityInput ? phoneCityInput.value.trim() : null,
-      });
-      setLoginFlag(true);
-    } catch (error) {
-      alert("Codice non valido: " + error.message);
     }
   });
 }
@@ -263,8 +271,14 @@ onAuthStateChanged(auth, async (user) => {
     const label = user.email || user.phoneNumber || "utente";
     setAuthStatus(`Stato: loggato (${label}).`, true);
     setLoginFlag(true);
+    unlockSite();
+    if (isHomePage && nextPage && nextPage !== "index.html") {
+      window.location.replace(nextPage);
+      return;
+    }
   } else {
     setAuthStatus("Stato: non autenticato.", false);
     setLoginFlag(false);
+    redirectToLogin();
   }
 });
