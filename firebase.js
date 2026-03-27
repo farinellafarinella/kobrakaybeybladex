@@ -51,7 +51,6 @@ const authStatus = document.getElementById("auth-status");
 const logoutUserButton = document.getElementById("logout-button");
 const siteHeader = document.querySelector(".site-header");
 const postForm = document.getElementById("post-form");
-const postNameInput = document.getElementById("post-name");
 const postMessageInput = document.getElementById("post-message");
 const postList = document.getElementById("post-list");
 const postNote = document.getElementById("post-note");
@@ -79,6 +78,7 @@ const currentPage = window.location.pathname.split("/").pop() || "index.html";
 const isLoginPage = currentPage === "index.html" || currentPage === "login.html";
 const nextPage = new URLSearchParams(window.location.search).get("next");
 let unsubscribeCurrentUserProfile = null;
+let currentUserProfile = {};
 
 const setLoginFlag = (value) => {
   const flag = value ? "true" : "false";
@@ -380,11 +380,7 @@ if (postForm && postList) {
       return;
     }
     const author =
-      postNameInput.value.trim() ||
-      user.displayName ||
-      user.email ||
-      user.phoneNumber ||
-      "Blader";
+      getUserLabel(user, currentUserProfile) || "Blader";
     await addDoc(collection(db, "posts"), {
       author,
       message,
@@ -432,6 +428,7 @@ onAuthStateChanged(auth, async (user) => {
       doc(db, "users", user.uid),
       (snapshot) => {
         const profile = snapshot.exists() ? snapshot.data() : {};
+        currentUserProfile = profile;
         renderHeaderUser(user, profile);
         populateProfileForm(profile);
         renderProfileSummary(user, profile);
@@ -451,6 +448,7 @@ onAuthStateChanged(auth, async (user) => {
   } else {
     unsubscribeCurrentUserProfile?.();
     unsubscribeCurrentUserProfile = null;
+    currentUserProfile = {};
     setAuthStatus("Stato: non autenticato.", false);
     setLoginFlag(false);
     syncAdminFlag(null);
