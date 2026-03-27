@@ -33,10 +33,30 @@
   <main>
     <section class="page-hero">
       <h1>Allenamenti settimanali</h1>
-      <p>Gli allenamenti programmati per i membri del club.</p>
+      <p>Ogni membro puo proporre un allenamento e partecipare alle sessioni create dagli altri.</p>
     </section>
 
-    <section class="event-grid" id="training-grid"></section>
+    <section class="creator-layout">
+      <form class="creator-form" id="member-training-form">
+        <h2>Proponi un allenamento</h2>
+        <label>
+          Data e luogo
+          <input type="text" id="member-training-date" placeholder="Es. Domenica 18:00 · Ravenna" required />
+        </label>
+        <label>
+          Titolo
+          <input type="text" id="member-training-title" placeholder="Es. Sessione stamina e test combo" required />
+        </label>
+        <label>
+          Descrizione
+          <textarea id="member-training-desc" rows="4" placeholder="Descrivi il mini evento, chi cerchi e cosa volete provare" required></textarea>
+        </label>
+        <button class="cta" type="submit">Proponi allenamento</button>
+        <p class="form-note" id="member-training-status">Gli allenamenti proposti dai membri compaiono subito qui sotto.</p>
+      </form>
+
+      <div class="event-grid" id="member-training-grid"></div>
+    </section>
   </main>
 
   <footer class="site-footer">

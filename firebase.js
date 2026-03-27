@@ -22,6 +22,9 @@ import {
   orderBy,
   doc,
   setDoc,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -71,6 +74,12 @@ const profileXp = document.getElementById("profile-xp");
 const profileTournamentsCount = document.getElementById(
   "profile-tournaments-count"
 );
+const memberTrainingForm = document.getElementById("member-training-form");
+const memberTrainingDateInput = document.getElementById("member-training-date");
+const memberTrainingTitleInput = document.getElementById("member-training-title");
+const memberTrainingDescInput = document.getElementById("member-training-desc");
+const memberTrainingStatus = document.getElementById("member-training-status");
+const memberTrainingGrid = document.getElementById("member-training-grid");
 
 const googleProvider = new GoogleAuthProvider();
 const ADMIN_EMAILS = ["mrpinkukulele@gmail.com"];
@@ -105,9 +114,6 @@ const getUserLabel = (user, profile = {}) => {
   if (firstName || lastName) {
     return `${firstName} ${lastName}`.trim();
   }
-  if (profile.nickname && profile.nickname.trim()) {
-    return profile.nickname.trim();
-  }
   if (user.displayName && user.displayName.trim()) {
     return user.displayName.trim();
   }
@@ -129,7 +135,7 @@ const renderHeaderUser = (user, profile = {}) => {
   const badge = existing || document.createElement("a");
   badge.className = "user-badge";
   badge.href = "il-mio-profilo.html";
-  badge.textContent = getUserLabel(user, profile);
+  badge.textContent = `Profilo · ${getUserLabel(user, profile)}`;
   if (!existing) {
     siteHeader.appendChild(badge);
   }
@@ -189,6 +195,70 @@ const renderProfileSummary = (user, profile = {}) => {
   profileBelt.textContent = currentBelt;
   profileXp.textContent = `${experiencePoints} XP`;
   profileTournamentsCount.textContent = `${tournamentsPlayed}`;
+};
+
+const renderMemberTrainings = (trainings = []) => {
+  if (!memberTrainingGrid) {
+    return;
+  }
+
+  if (!trainings.length) {
+    memberTrainingGrid.innerHTML =
+      '<div class="creator-results"><p class="muted">Nessun allenamento proposto per ora.</p></div>';
+    return;
+  }
+
+  const currentUid = auth.currentUser?.uid || "";
+  memberTrainingGrid.innerHTML = trainings
+    .map((training) => {
+      const participantIds = Array.isArray(training.participantIds)
+        ? training.participantIds
+        : [];
+      const isJoined = currentUid && participantIds.includes(currentUid);
+      const participantCount = participantIds.length;
+
+      return `
+        <article class="event-card">
+          <div>
+            <p class="event-date">${training.date || ""}</p>
+            <h2>${training.title || ""}</h2>
+            <p>${training.description || ""}</p>
+            <p class="training-meta">Proposto da ${training.createdByName || "Membro Kobra Kay"}</p>
+            <p class="training-meta">Partecipanti: ${participantCount}</p>
+          </div>
+          <button class="cta ${isJoined ? "active" : ""}" type="button" data-training-id="${training.id}">
+            ${isJoined ? "Partecipo gia" : "Partecipo"}
+          </button>
+        </article>
+      `;
+    })
+    .join("");
+
+  memberTrainingGrid
+    .querySelectorAll("button[data-training-id]")
+    .forEach((button) => {
+      button.addEventListener("click", async () => {
+        const user = auth.currentUser;
+        if (!user) {
+          return;
+        }
+        const trainingId = button.dataset.trainingId;
+        const isJoined = button.classList.contains("active");
+        try {
+          await updateDoc(doc(db, "trainings", trainingId), {
+            participantIds: isJoined
+              ? arrayRemove(user.uid)
+              : arrayUnion(user.uid),
+          });
+        } catch (error) {
+          alert(
+            error?.code === "permission-denied"
+              ? "Non hai i permessi Firestore per partecipare a questo allenamento."
+              : "Errore durante l'aggiornamento della partecipazione."
+          );
+        }
+      });
+    });
 };
 
 const setAuthStatus = (text, loggedIn) => {
@@ -332,7 +402,16 @@ if (logoutUserButton) {
   });
 }
 
-if (profileForm) {
+if (
+  profileForm &&
+  profileFirstNameInput &&
+  profileLastNameInput &&
+  profileNicknameInput &&
+  profileCityInput &&
+  profileFavoriteBeyInput &&
+  profileBioInput &&
+  profileTournamentsInput
+) {
   profileForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const user = auth.currentUser;
@@ -367,7 +446,47 @@ if (profileForm) {
   });
 }
 
-if (postForm && postList) {
+if (
+  memberTrainingForm &&
+  memberTrainingDateInput &&
+  memberTrainingTitleInput &&
+  memberTrainingDescInput
+) {
+  memberTrainingForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const user = auth.currentUser;
+    if (!user) {
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "trainings"), {
+        date: memberTrainingDateInput.value.trim(),
+        title: memberTrainingTitleInput.value.trim(),
+        description: memberTrainingDescInput.value.trim(),
+        createdByUid: user.uid,
+        createdByName: getUserLabel(user, currentUserProfile),
+        participantIds: [user.uid],
+        createdAt: serverTimestamp(),
+      });
+
+      memberTrainingForm.reset();
+      if (memberTrainingStatus) {
+        memberTrainingStatus.textContent =
+          "Allenamento proposto con successo.";
+      }
+    } catch (error) {
+      if (memberTrainingStatus) {
+        memberTrainingStatus.textContent =
+          error?.code === "permission-denied"
+            ? "Firestore sta bloccando la creazione dell'allenamento. Devi aggiornare le regole."
+            : "Errore durante la creazione dell'allenamento.";
+      }
+    }
+  });
+}
+
+if (postForm && postList && postMessageInput) {
   postForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const message = postMessageInput.value.trim();
@@ -418,6 +537,26 @@ if (memberCount) {
   onSnapshot(usersQuery, (snapshot) => {
     memberCount.textContent = `Membri registrati: ${snapshot.size}`;
   });
+}
+
+if (memberTrainingGrid) {
+  const trainingsQuery = query(
+    collection(db, "trainings"),
+    orderBy("createdAt", "desc")
+  );
+  onSnapshot(
+    trainingsQuery,
+    (snapshot) => {
+      const trainings = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      }));
+      renderMemberTrainings(trainings);
+    },
+    () => {
+      renderMemberTrainings([]);
+    }
+  );
 }
 
 onAuthStateChanged(auth, async (user) => {

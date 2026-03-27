@@ -109,8 +109,8 @@ main {
 }
 
 .user-badge {
-  position: absolute;
-  top: 8px;
+  position: fixed;
+  top: 10px;
   right: 7vw;
   text-decoration: none;
   padding: 10px 16px;
@@ -120,7 +120,8 @@ main {
   color: var(--ember);
   font-weight: 700;
   white-space: nowrap;
-  z-index: 2;
+  z-index: 30;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
 }
 
 .user-badge:hover {
@@ -690,6 +691,12 @@ h3 {
   font-weight: 600;
 }
 
+.training-meta {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
 .trophy-name {
   font-weight: 600;
   color: var(--ember);
@@ -761,6 +768,14 @@ body[data-protected="true"].auth-ready {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 24px;
   margin-top: 60px;
+}
+
+.board-shell {
+  margin-top: 60px;
+}
+
+.board-card-full {
+  width: min(100%, 920px);
 }
 
 .join-whatsapp {

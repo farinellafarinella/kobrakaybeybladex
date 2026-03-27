@@ -18,13 +18,7 @@ const defaultEvents = [
   },
 ];
 
-const defaultTrainings = [
-  {
-    date: "Non previsti",
-    title: "Nessun allenamento programmato",
-    description: "Al momento non sono previsti allenamenti settimanali.",
-  },
-];
+const defaultTrainings = [];
 
 const defaultTrophies = [
   {
