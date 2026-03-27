@@ -22,15 +22,13 @@ import {
   orderBy,
   where,
   doc,
+  getDoc,
   setDoc,
   updateDoc,
   arrayUnion,
   arrayRemove,
+  increment,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import {
-  getFunctions,
-  httpsCallable,
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCD4ZnQqwRuUbDsrZ-fKTcn898VsoJoLqM",
@@ -42,10 +40,21 @@ const firebaseConfig = {
   measurementId: "G-31JPYGWGL1",
 };
 
+const CHALLONGE_PUBLIC_API_KEY = "IN5466054eb0e5f2302f3ac00cc21276b4112d64b181f4ba32";
+const CHALLONGE_API_KEY_STORAGE = "kobra_challonge_api_key";
+const CHALLONGE_API_BASE = "https://api.challonge.com/v1";
+const challongeStateLabels = {
+  pending: "In attesa",
+  checking_in: "Check-in aperto",
+  checked_in: "Check-in chiuso",
+  underway: "In corso",
+  awaiting_review: "In revisione",
+  complete: "Concluso",
+};
+
 const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
-const functions = getFunctions(firebaseApp);
 
 const authTabs = document.querySelectorAll(".auth-tab");
 const authPanels = document.querySelectorAll(".auth-panel");
@@ -96,18 +105,118 @@ let unsubscribeEventRegistrations = null;
 let currentUserProfile = {};
 let registeredEventIds = new Set();
 let activeTournamentRegistrationId = "";
-const importChallongeTournament = httpsCallable(
-  functions,
-  "importChallongeTournament"
-);
-const registerForChallongeTournament = httpsCallable(
-  functions,
-  "registerForChallongeTournament"
-);
 
-window.kobraKayImportTournament = async (challongeUrl) => {
-  const response = await importChallongeTournament({ challongeUrl });
-  return response.data || {};
+const getChallongeApiKey = () => {
+  const storedKey = window.localStorage.getItem(CHALLONGE_API_KEY_STORAGE) || "";
+  const key = (storedKey || CHALLONGE_PUBLIC_API_KEY).trim();
+  if (!key || key === CHALLONGE_PUBLIC_API_KEY) {
+    throw new Error(
+      "Configura la API key Challonge in firebase.js prima di usare l'import automatico."
+    );
+  }
+  return key;
+};
+
+const parseChallongeTournament = (input) => {
+  const raw = String(input || "").trim();
+  if (!raw) {
+    throw new Error("Inserisci un link Challonge.");
+  }
+
+  try {
+    const normalized = raw.startsWith("http") ? raw : `https://${raw}`;
+    const url = new URL(normalized);
+    const host = url.hostname.toLowerCase();
+
+    if (!host.includes("challonge.com")) {
+      throw new Error("Il link Challonge non e valido.");
+    }
+
+    const pathSlug = url.pathname.split("/").filter(Boolean)[0];
+    if (!pathSlug) {
+      throw new Error("Il link Challonge non e valido.");
+    }
+
+    const hostParts = host.split(".");
+    const subdomain =
+      hostParts.length > 2 && hostParts[0] !== "www" ? hostParts[0] : "";
+    const identifier = subdomain ? `${subdomain}-${pathSlug}` : pathSlug;
+    const publicUrl = subdomain
+      ? `https://${subdomain}.challonge.com/${pathSlug}`
+      : `https://challonge.com/${pathSlug}`;
+
+    return { identifier, publicUrl };
+  } catch (error) {
+    if (raw.includes("/") || raw.includes(".")) {
+      throw new Error("Il link Challonge non e valido.");
+    }
+
+    return {
+      identifier: raw,
+      publicUrl: `https://challonge.com/${raw}`,
+    };
+  }
+};
+
+const formatChallongeDate = (value) => {
+  if (!value) {
+    return "Data da definire";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "Data da definire";
+  }
+
+  return new Intl.DateTimeFormat("it-IT", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+};
+
+const stripHtml = (value) =>
+  String(value || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const challongeFetch = async (path, options = {}) => {
+  const key = getChallongeApiKey();
+  const url = new URL(`${CHALLONGE_API_BASE}/${path}`);
+  url.searchParams.set("api_key", key);
+
+  Object.entries(options.params || {}).forEach(([name, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      url.searchParams.set(name, String(value));
+    }
+  });
+
+  const response = await fetch(url, {
+    method: options.method || "GET",
+    headers: {
+      Accept: "application/json",
+      ...(options.headers || {}),
+    },
+    body: options.body,
+  });
+
+  let payload = null;
+  try {
+    payload = await response.json();
+  } catch (error) {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      payload?.errors?.[0] ||
+        payload?.error ||
+        "Challonge ha rifiutato la richiesta."
+    );
+  }
+
+  return payload;
 };
 
 const updateTournamentRegistrationUi = () => {
@@ -244,6 +353,195 @@ const getBeltFromExperience = (experience) => {
     return "Gialla";
   }
   return "Bianca";
+};
+
+const saveChallongeEvent = async (tournament, identifier, publicUrl) => {
+  const participants = Array.isArray(tournament.participants)
+    ? tournament.participants
+    : [];
+  const startsAt =
+    tournament.started_at || tournament.start_at || tournament.created_at;
+  const state = String(tournament.state || "").trim().toLowerCase();
+  const docId = `challonge_${identifier.replace(/[^\w-]/g, "_")}`;
+  const typeLabel = String(tournament.tournament_type || "")
+    .replaceAll("_", " ")
+    .trim();
+  const description =
+    stripHtml(tournament.description) ||
+    (typeLabel
+      ? `Bracket ${typeLabel} sincronizzato da Challonge.`
+      : "Torneo sincronizzato da Challonge.");
+
+  await setDoc(
+    doc(db, "events", docId),
+    {
+      title: String(tournament.name || identifier).trim(),
+      description,
+      date: formatChallongeDate(startsAt),
+      startsAt: startsAt || null,
+      state,
+      stateLabel: challongeStateLabels[state] || "Aggiornato da Challonge",
+      tournamentType: typeLabel,
+      participantCount: participants.length,
+      source: "challonge",
+      sourceUrl: publicUrl,
+      challongeIdentifier: identifier,
+      challongeSyncedAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+
+  return {
+    id: docId,
+    title: String(tournament.name || identifier).trim(),
+    sourceUrl: publicUrl,
+    participantCount: participants.length,
+    stateLabel: challongeStateLabels[state] || "Aggiornato da Challonge",
+  };
+};
+
+window.kobraKayImportTournament = async (challongeUrl) => {
+  const { identifier, publicUrl } = parseChallongeTournament(challongeUrl);
+  const payload = await challongeFetch(
+    `tournaments/${encodeURIComponent(identifier)}.json`,
+    {
+      params: {
+        include_participants: 1,
+      },
+    }
+  );
+  const tournament = payload?.tournament;
+  if (!tournament) {
+    throw new Error("Il torneo Challonge non contiene dati utilizzabili.");
+  }
+  return saveChallongeEvent(tournament, identifier, publicUrl);
+};
+
+const registerCurrentUserForEvent = async (eventId, user) => {
+  const registrationRef = doc(db, "eventRegistrations", `${eventId}_${user.uid}`);
+  const eventRef = doc(db, "events", eventId);
+  const userRef = doc(db, "users", user.uid);
+
+  const [registrationSnap, eventSnap, userSnap] = await Promise.all([
+    getDoc(registrationRef),
+    getDoc(eventRef),
+    getDoc(userRef),
+  ]);
+
+  if (registrationSnap.exists()) {
+    return { alreadyRegistered: true };
+  }
+
+  if (!eventSnap.exists()) {
+    throw new Error("Torneo non trovato.");
+  }
+
+  const eventData = eventSnap.data() || {};
+  if (eventData.source !== "challonge" || !eventData.challongeIdentifier) {
+    throw new Error("Questo torneo non e collegato a Challonge.");
+  }
+
+  const profile = userSnap.exists() ? userSnap.data() : {};
+  const participantName = getUserLabel(user, profile);
+  const participantEmail = String(user.email || profile.email || "").trim();
+
+  if (!participantEmail) {
+    throw new Error("Per registrarti serve una mail valida sul profilo.");
+  }
+
+  const identifier = String(eventData.challongeIdentifier).trim();
+  const participantsPayload = await challongeFetch(
+    `tournaments/${encodeURIComponent(identifier)}/participants.json`
+  );
+  const participants = Array.isArray(participantsPayload)
+    ? participantsPayload
+    : [];
+  const existingParticipant = participants
+    .map((entry) => entry.participant || {})
+    .find(
+      (participant) =>
+        String(participant.misc || "").trim() === user.uid ||
+        String(participant.email || "").trim().toLowerCase() ===
+          participantEmail.toLowerCase()
+    );
+
+  let participantId = existingParticipant?.id || null;
+  let createdOnChallonge = false;
+
+  if (!existingParticipant) {
+    const body = new URLSearchParams();
+    body.set("participant[name]", participantName);
+    body.set("participant[email]", participantEmail);
+    body.set("participant[misc]", user.uid);
+
+    const createdPayload = await challongeFetch(
+      `tournaments/${encodeURIComponent(identifier)}/participants.json`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body,
+      }
+    );
+
+    participantId = createdPayload?.participant?.id || null;
+    createdOnChallonge = true;
+  }
+
+  await setDoc(
+    registrationRef,
+    {
+      uid: user.uid,
+      eventId,
+      eventTitle: String(eventData.title || "").trim(),
+      source: "challonge",
+      challongeIdentifier: identifier,
+      challongeParticipantId: participantId,
+      participantName,
+      participantEmail,
+      createdAt: serverTimestamp(),
+      syncedFromChallonge: !createdOnChallonge,
+    },
+    { merge: true }
+  );
+
+  if (createdOnChallonge) {
+    const currentTournamentsPlayed =
+      Number.parseInt(profile.tournamentsPlayed || 0, 10) || 0;
+    const nextTournamentsPlayed = currentTournamentsPlayed + 1;
+    const nextExperience = getExperienceFromTournaments(nextTournamentsPlayed);
+    const nextBelt = getBeltFromExperience(nextExperience);
+
+    await setDoc(
+      userRef,
+      {
+        tournamentsPlayed: nextTournamentsPlayed,
+        experiencePoints: nextExperience,
+        currentBelt: nextBelt,
+      },
+      { merge: true }
+    );
+
+    await updateDoc(eventRef, {
+      participantCount: increment(1),
+      updatedAt: serverTimestamp(),
+    });
+
+    return {
+      registered: true,
+      participantId,
+      tournamentsPlayed: nextTournamentsPlayed,
+      experiencePoints: nextExperience,
+      currentBelt: nextBelt,
+    };
+  }
+
+  return {
+    alreadyRegistered: true,
+    participantId,
+  };
 };
 
 const populateProfileForm = (profile = {}) => {
@@ -655,8 +953,7 @@ if (eventGrid) {
     updateTournamentRegistrationUi();
 
     try {
-      const response = await registerForChallongeTournament({ eventId });
-      const result = response.data || {};
+      const result = await registerCurrentUserForEvent(eventId, user);
 
       if (result.registered || result.alreadyRegistered) {
         registeredEventIds = new Set([...registeredEventIds, eventId]);

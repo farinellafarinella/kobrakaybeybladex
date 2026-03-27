@@ -1078,7 +1078,7 @@ if (eventForm) {
         if (eventSyncStatus) {
           eventSyncStatus.textContent =
             error.message === "import-unavailable"
-              ? "Funzione Challonge non disponibile. Devi deployare le Firebase Functions."
+              ? "Import Challonge non disponibile nel frontend."
               : error.message || "Importazione Challonge non riuscita.";
         }
       }
