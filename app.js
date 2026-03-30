@@ -79,6 +79,9 @@ const initFirestore = () => {
       window.firebase.initializeApp(firebaseConfig);
     }
     firestore = window.firebase.firestore();
+    firestore.settings({
+      experimentalForceLongPolling: true,
+    });
     firebaseReady = true;
     localStorage.removeItem("myagi_events");
     localStorage.removeItem("myagi_trainings");
@@ -980,12 +983,14 @@ const eventForm = document.getElementById("event-form");
 const eventSyncStatus = document.getElementById("event-sync-status");
 const trainingForm = document.getElementById("training-form");
 const trophyForm = document.getElementById("trophy-form");
+const pointsForm = document.getElementById("points-form");
+const pointsStatus = document.getElementById("points-status");
 const passwordForm = document.getElementById("password-form");
 const resetButton = document.getElementById("reset-data");
 const logoutButton = document.getElementById("admin-logout");
 
 const setAdminFormsEnabled = (enabled) => {
-  [refereeForm, eventForm, trainingForm, trophyForm, passwordForm].forEach(
+  [refereeForm, eventForm, trainingForm, trophyForm, pointsForm, passwordForm].forEach(
     (form) => {
       if (!form) {
         return;
@@ -1167,6 +1172,104 @@ if (trophyForm) {
       });
     }
     trophyForm.reset();
+  });
+}
+
+if (pointsForm) {
+  const typeSelect = document.getElementById("points-type");
+  const valueInput = document.getElementById("points-value");
+  const userInput = document.getElementById("points-user");
+  const noteInput = document.getElementById("points-note");
+
+  if (typeSelect && valueInput) {
+    typeSelect.addEventListener("change", () => {
+      const selectedOption = typeSelect.options[typeSelect.selectedIndex];
+      const suggestedPoints = selectedOption?.dataset.points || "";
+      if (suggestedPoints) {
+        valueInput.value = suggestedPoints;
+      }
+    });
+  }
+
+  pointsForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!isAdminLoggedIn()) {
+      alert("Devi fare login admin per assegnare punti.");
+      return;
+    }
+    if (!firestore || !typeSelect || !valueInput || !userInput) {
+      return;
+    }
+
+    const identifier = userInput.value.trim();
+    const type = typeSelect.value.trim();
+    const points = Number.parseInt(valueInput.value || 0, 10) || 0;
+    const note = noteInput?.value.trim() || "";
+
+    if (!identifier || points <= 0) {
+      if (pointsStatus) {
+        pointsStatus.textContent = "Inserisci un membro valido e un numero di punti corretto.";
+      }
+      return;
+    }
+
+    const normalizedIdentifier = identifier.toLowerCase();
+    const queryRef = identifier.includes("@")
+      ? firestore.collection("users").where("email", "==", normalizedIdentifier).limit(1)
+      : firestore
+          .collection("users")
+          .where("memberId", "==", identifier.toUpperCase())
+          .limit(1);
+
+    const snapshot = await queryRef.get();
+    if (snapshot.empty) {
+      if (pointsStatus) {
+        pointsStatus.textContent = "Nessun membro trovato con questo ID tessera o questa mail.";
+      }
+      return;
+    }
+
+    const userDoc = snapshot.docs[0];
+    const currentData = userDoc.data() || {};
+    const activityEntry = {
+      type,
+      label:
+        type === "training"
+          ? "Punti allenamento"
+          : type === "tournament"
+            ? "Punti torneo"
+            : "Bonus staff",
+      note: note || "Punti assegnati dallo staff",
+      points,
+      createdAtIso: new Date().toISOString(),
+    };
+
+    await userDoc.ref.set(
+      {
+        points:
+          (Number.parseInt(currentData.points || 0, 10) || 0) + points,
+        memberActivity: window.firebase.firestore.FieldValue.arrayUnion(
+          activityEntry
+        ),
+        membershipStatus: currentData.membershipStatus || "Attiva",
+        memberId:
+          currentData.memberId ||
+          `KK-${String(userDoc.id || "").slice(0, 8).toUpperCase()}`,
+        monthlyTicketsMonth:
+          currentData.monthlyTicketsMonth ||
+          new Date().toISOString().slice(0, 7),
+      },
+      { merge: true }
+    );
+
+    if (pointsStatus) {
+      pointsStatus.textContent = `${points} punti assegnati a ${identifier}.`;
+    }
+    pointsForm.reset();
+    if (typeSelect && valueInput) {
+      const selectedOption = typeSelect.options[typeSelect.selectedIndex];
+      valueInput.value = selectedOption?.dataset.points || "30";
+    }
   });
 }
 

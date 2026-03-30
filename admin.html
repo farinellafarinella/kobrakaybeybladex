@@ -25,7 +25,7 @@
       <a href="trofei.html">Trofei</a>
       <a href="crea-bey.html">Crea il tuo bey</a>
       <a href="allenamenti.html">Allenamenti settimanali</a>
-      <a href="la-mia-cintura.html">Patentino arbitro</a>
+      <a href="la-mia-cintura.html">La mia tessera</a>
       <a href="team.html">Bacheca membri</a>
     </nav>
   </header>
@@ -33,7 +33,7 @@
   <main>
     <section class="page-hero">
       <h1>Admin</h1>
-      <p>Accedi per gestire patentini arbitro, allenamenti, trofei e importare i tornei direttamente da Challonge.</p>
+      <p>Accedi per gestire tessere punti, tornei, allenamenti, trofei e importare i tornei direttamente da Challonge.</p>
     </section>
 
     <section class="admin-layout">
@@ -114,6 +114,31 @@
             </label>
             <button class="cta" type="submit">Aggiungi trofeo</button>
           </form>
+          <form class="admin-form" id="points-form">
+            <h3>Assegna punti tessera</h3>
+            <label>
+              ID tessera o email
+              <input type="text" id="points-user" placeholder="KK-1234ABCD oppure mail" required />
+            </label>
+            <label>
+              Motivo
+              <select id="points-type" required>
+                <option value="tournament" data-points="30">Torneo · 30 punti</option>
+                <option value="training" data-points="10">Allenamento · 10 punti</option>
+                <option value="staff_bonus" data-points="5">Bonus staff · 5 punti</option>
+              </select>
+            </label>
+            <label>
+              Punti
+              <input type="number" id="points-value" min="1" step="1" value="30" required />
+            </label>
+            <label>
+              Nota
+              <input type="text" id="points-note" placeholder="Nome torneo o motivo bonus" />
+            </label>
+            <button class="cta" type="submit">Assegna punti</button>
+            <p class="form-note" id="points-status">Usa la mail o l'ID tessera del membro per aggiungere punti.</p>
+          </form>
         </div>
 
         <div class="admin-grid">
@@ -155,7 +180,7 @@
   </main>
 
   <footer class="site-footer">
-    <p>Area privata del club. I tornei possono essere sincronizzati da Challonge solo con account admin autorizzato.</p>
+    <p>Area privata del club. Qui assegni punti tessera e gestisci le attivita dei membri.</p>
     <a class="whatsapp-link" href="https://chat.whatsapp.com/KB9i8q9AjGL2bUya3xvLXv">
       <img class="whatsapp-icon" src="images/whatsapp.png" alt="" />
       Entra nel gruppo WhatsApp

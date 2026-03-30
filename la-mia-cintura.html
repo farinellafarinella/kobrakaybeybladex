@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Patentino arbitro | Kobra Kay Bleyblade X</title>
+  <title>La mia tessera | Kobra Kay Bleyblade X</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet" />
@@ -25,49 +25,78 @@
       <a href="trofei.html">Trofei</a>
       <a href="crea-bey.html">Crea il tuo bey</a>
       <a href="allenamenti.html">Allenamenti settimanali</a>
-      <a class="active" href="la-mia-cintura.html">Patentino arbitro</a>
+      <a class="active" href="la-mia-cintura.html">La mia tessera</a>
       <a href="team.html">Bacheca membri</a>
     </nav>
   </header>
 
   <main>
     <section class="page-hero">
-      <h1>Patentino arbitro</h1>
-      <p>Qui trovi i membri del club che stanno seguendo o hanno completato il patentino arbitro.</p>
+      <h1>La mia tessera Kobra Kay</h1>
+      <p>Dentro l'app attivi la tua tessera digitale, accumuli punti e li trasformi in biglietti per l'estrazione mensile.</p>
     </section>
 
-    <section class="referee-layout">
-      <div class="referee-card">
-        <h2>Come funziona</h2>
-        <p class="lead">
-          Il patentino arbitro viene assegnato dopo sessioni pratiche interne, verifica regolamento e gestione match.
-        </p>
-        <ul class="referee-steps">
-          <li>In formazione</li>
-          <li>Assistente arbitro</li>
-          <li>Arbitro club</li>
-          <li>Capo arbitro</li>
-        </ul>
-        <p class="form-note">Aggiornamento dopo ogni verifica o prova pratica interna.</p>
+    <section class="membership-layout">
+      <div class="member-card-shell">
+        <div class="member-card">
+          <p class="eyebrow">Tessera digitale</p>
+          <h2 id="member-card-name">Membro Kobra Kay</h2>
+          <p class="lead">La tua tessera si attiva appena entri nell'app e ti segue in tutte le attivita del club.</p>
+          <div class="barcode-strip" aria-hidden="true"></div>
+          <p class="barcode-value" id="member-card-id">KK-00000000</p>
+          <p class="form-note" id="member-card-status">Stato tessera: attiva</p>
+        </div>
       </div>
 
-      <div class="referee-card">
-        <h2>Elenco arbitri</h2>
-        <div class="referee-filters">
-          <button class="referee-filter active" type="button" data-license="tutti">Tutti</button>
-          <button class="referee-filter" type="button" data-license="in-formazione">In formazione</button>
-          <button class="referee-filter" type="button" data-license="assistente-arbitro">Assistente arbitro</button>
-          <button class="referee-filter" type="button" data-license="arbitro-club">Arbitro club</button>
-          <button class="referee-filter" type="button" data-license="capo-arbitro">Capo arbitro</button>
+      <div class="creator-results profile-summary">
+        <h2>Saldo club</h2>
+        <div class="profile-metrics">
+          <div class="profile-metric">
+            <span class="profile-metric-label">Punti disponibili</span>
+            <strong id="member-points-balance">0 punti</strong>
+          </div>
+          <div class="profile-metric">
+            <span class="profile-metric-label">Biglietti del mese</span>
+            <strong id="member-ticket-count">0</strong>
+          </div>
+          <div class="profile-metric">
+            <span class="profile-metric-label">Ultimo bonus giornaliero</span>
+            <strong id="member-last-daily">Non ancora riscattato</strong>
+          </div>
         </div>
-        <div class="referee-list" id="referee-list"></div>
-        <p class="muted" id="referee-empty" hidden>Nessun arbitro inserito.</p>
+        <div class="ticket-actions">
+          <button class="cta" type="button" id="daily-claim-button">Riscatta bonus giornaliero</button>
+          <button class="cta ghost" type="button" id="buy-ticket-button">Compra 1 biglietto</button>
+          <button class="cta ghost" type="button" id="buy-five-tickets-button">Compra 5 biglietti</button>
+        </div>
+        <p class="form-note" id="member-card-note">Ogni accesso e un passo in piu dentro il club.</p>
+      </div>
+
+      <div class="creator-form">
+        <h2>Come guadagni punti</h2>
+        <p class="lead">
+          La tessera digitale premia chi entra davvero nella vita del club.
+        </p>
+        <ul class="referee-steps">
+          <li>Bonus giornaliero: 5 punti</li>
+          <li>Partecipazione a un torneo: 30 punti</li>
+          <li>Partecipazione a un allenamento: 10 punti</li>
+          <li>1 biglietto lotteria: 50 punti</li>
+        </ul>
+        <p class="form-note">Piu partecipi, piu biglietti accumuli per l'estrazione mensile.</p>
+      </div>
+
+      <div class="creator-results">
+        <h2>Ultime attivita</h2>
+        <div class="activity-list" id="member-activity-list">
+          <p class="muted">Ancora nessuna attivita registrata.</p>
+        </div>
       </div>
     </section>
   </main>
 
   <footer class="site-footer">
-    <p>Le verifiche interne aggiornano il patentino arbitro del club.</p>
+    <p>La tessera digitale ti fa entrare davvero nella vita del club: punti, presenza e lotteria mensile.</p>
     <a class="whatsapp-link" href="https://chat.whatsapp.com/KB9i8q9AjGL2bUya3xvLXv">
       <img class="whatsapp-icon" src="images/whatsapp.png" alt="" />
       Entra nel gruppo WhatsApp

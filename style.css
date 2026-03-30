@@ -814,6 +814,10 @@ body[data-protected="true"].auth-ready {
   margin-top: 24px;
 }
 
+.membership-drive {
+  margin-top: 24px;
+}
+
 .kit-list {
   list-style: none;
   display: grid;
@@ -849,6 +853,84 @@ body[data-protected="true"].auth-ready {
   width: auto;
   height: auto;
   object-fit: contain;
+}
+
+.membership-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+
+.member-card-shell {
+  display: grid;
+}
+
+.member-card {
+  padding: 28px;
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(circle at top right, rgba(253, 244, 25, 0.18), transparent 35%),
+    linear-gradient(145deg, #121212, #050505);
+  border: 1px solid rgba(253, 244, 25, 0.18);
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 14px;
+}
+
+.barcode-strip {
+  height: 84px;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    repeating-linear-gradient(
+      90deg,
+      #fdf419 0 2px,
+      transparent 2px 4px,
+      #ffffff 4px 5px,
+      transparent 5px 8px,
+      #fdf419 8px 11px,
+      transparent 11px 14px
+    );
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.barcode-value {
+  letter-spacing: 0.28em;
+  font-size: 0.9rem;
+  color: var(--ember);
+  text-transform: uppercase;
+}
+
+.ticket-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.activity-list {
+  display: grid;
+  gap: 12px;
+}
+
+.activity-item {
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: grid;
+  gap: 6px;
+}
+
+.points-badge {
+  display: inline-flex;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(253, 244, 25, 0.12);
+  border: 1px solid rgba(253, 244, 25, 0.32);
+  color: var(--ember);
+  font-weight: 700;
 }
 
 

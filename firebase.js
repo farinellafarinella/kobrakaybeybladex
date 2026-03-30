@@ -13,7 +13,7 @@ import {
   signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  getFirestore,
+  initializeFirestore,
   collection,
   addDoc,
   serverTimestamp,
@@ -44,6 +44,10 @@ const CHALLONGE_PUBLIC_API_KEY = "IN5466054eb0e5f2302f3ac00cc21276b4112d64b181f4
 const CHALLONGE_API_KEY_PLACEHOLDER = "INCOLLA_LA_TUA_API_KEY_QUI";
 const CHALLONGE_API_KEY_STORAGE = "kobra_challonge_api_key";
 const CHALLONGE_API_BASE = "https://api.challonge.com/v1";
+const DAILY_CLAIM_POINTS = 5;
+const TOURNAMENT_REWARD_POINTS = 30;
+const TRAINING_REWARD_POINTS = 10;
+const LOTTERY_TICKET_COST = 50;
 const challongeStateLabels = {
   pending: "In attesa",
   checking_in: "Check-in aperto",
@@ -55,7 +59,9 @@ const challongeStateLabels = {
 
 const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
-const db = getFirestore(firebaseApp);
+const db = initializeFirestore(firebaseApp, {
+  experimentalForceLongPolling: true,
+});
 
 const authTabs = document.querySelectorAll(".auth-tab");
 const authPanels = document.querySelectorAll(".auth-panel");
@@ -95,6 +101,17 @@ const memberTrainingDescInput = document.getElementById("member-training-desc");
 const memberTrainingStatus = document.getElementById("member-training-status");
 const memberTrainingGrid = document.getElementById("member-training-grid");
 const eventGrid = document.getElementById("event-grid");
+const memberCardName = document.getElementById("member-card-name");
+const memberCardId = document.getElementById("member-card-id");
+const memberCardStatus = document.getElementById("member-card-status");
+const memberPointsBalance = document.getElementById("member-points-balance");
+const memberTicketCount = document.getElementById("member-ticket-count");
+const memberLastDaily = document.getElementById("member-last-daily");
+const memberCardNote = document.getElementById("member-card-note");
+const memberActivityList = document.getElementById("member-activity-list");
+const dailyClaimButton = document.getElementById("daily-claim-button");
+const buyTicketButton = document.getElementById("buy-ticket-button");
+const buyFiveTicketsButton = document.getElementById("buy-five-tickets-button");
 
 const googleProvider = new GoogleAuthProvider();
 const ADMIN_EMAILS = ["mrpinkukulele@gmail.com"];
@@ -116,6 +133,89 @@ const getChallongeApiKey = () => {
     );
   }
   return key;
+};
+
+const getCurrentMonthKey = () => {
+  const now = new Date();
+  const month = `${now.getMonth() + 1}`.padStart(2, "0");
+  return `${now.getFullYear()}-${month}`;
+};
+
+const getTodayKey = () => {
+  const now = new Date();
+  const month = `${now.getMonth() + 1}`.padStart(2, "0");
+  const day = `${now.getDate()}`.padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
+};
+
+const getDefaultMemberId = (user) =>
+  `KK-${String(user?.uid || "").slice(0, 8).toUpperCase()}`;
+
+const getActivityLabel = (activity = {}) => {
+  if (activity.label) {
+    return activity.label;
+  }
+  if (activity.type === "daily") {
+    return "Bonus giornaliero";
+  }
+  if (activity.type === "lottery_redeem") {
+    return "Biglietti lotteria";
+  }
+  if (activity.type === "tournament") {
+    return "Punti torneo";
+  }
+  if (activity.type === "training") {
+    return "Punti allenamento";
+  }
+  return "Attivita club";
+};
+
+const getMembershipData = (user, profile = {}) => {
+  const monthKey = getCurrentMonthKey();
+  const points = Number.parseInt(profile.points || 0, 10) || 0;
+  const tickets =
+    profile.monthlyTicketsMonth === monthKey
+      ? Number.parseInt(profile.lotteryTickets || 0, 10) || 0
+      : 0;
+
+  return {
+    memberId: profile.memberId || getDefaultMemberId(user),
+    membershipStatus: profile.membershipStatus || "Attiva",
+    points,
+    lotteryTickets: tickets,
+    monthlyTicketsMonth: monthKey,
+    lastDailyClaimDay: profile.lastDailyClaimDay || "",
+    memberActivity: Array.isArray(profile.memberActivity)
+      ? profile.memberActivity
+      : [],
+  };
+};
+
+const syncMembershipDefaults = async (user, profile = {}) => {
+  if (!user) {
+    return;
+  }
+  const patch = {};
+  if (!profile.memberId) {
+    patch.memberId = getDefaultMemberId(user);
+  }
+  if (typeof profile.points !== "number") {
+    patch.points = 0;
+  }
+  if (!profile.membershipStatus) {
+    patch.membershipStatus = "Attiva";
+  }
+  if (!Array.isArray(profile.memberActivity)) {
+    patch.memberActivity = [];
+  }
+  if (profile.monthlyTicketsMonth !== getCurrentMonthKey()) {
+    patch.monthlyTicketsMonth = getCurrentMonthKey();
+    patch.lotteryTickets = 0;
+  }
+  if (!Object.keys(patch).length) {
+    return;
+  }
+  await setDoc(doc(db, "users", user.uid), patch, { merge: true });
 };
 
 const parseChallongeTournament = (input) => {
@@ -514,6 +614,14 @@ const registerCurrentUserForEvent = async (eventId, user) => {
     const nextTournamentsPlayed = currentTournamentsPlayed + 1;
     const nextExperience = getExperienceFromTournaments(nextTournamentsPlayed);
     const nextBelt = getBeltFromExperience(nextExperience);
+    const membership = getMembershipData(user, profile);
+    const activityEntry = {
+      type: "tournament",
+      label: "Partecipazione torneo",
+      note: String(eventData.title || "").trim(),
+      points: TOURNAMENT_REWARD_POINTS,
+      createdAtIso: new Date().toISOString(),
+    };
 
     await setDoc(
       userRef,
@@ -521,6 +629,11 @@ const registerCurrentUserForEvent = async (eventId, user) => {
         tournamentsPlayed: nextTournamentsPlayed,
         experiencePoints: nextExperience,
         currentBelt: nextBelt,
+        memberId: membership.memberId,
+        membershipStatus: membership.membershipStatus,
+        monthlyTicketsMonth: membership.monthlyTicketsMonth,
+        points: membership.points + TOURNAMENT_REWARD_POINTS,
+        memberActivity: arrayUnion(activityEntry),
       },
       { merge: true }
     );
@@ -572,6 +685,72 @@ const renderProfileSummary = (user, profile = {}) => {
   profileBelt.textContent = currentBelt;
   profileXp.textContent = `${experiencePoints} XP`;
   profileTournamentsCount.textContent = `${tournamentsPlayed}`;
+};
+
+const renderMembershipCard = (user, profile = {}) => {
+  if (!memberCardName) {
+    return;
+  }
+
+  const membership = getMembershipData(user, profile);
+  const alreadyClaimedToday = membership.lastDailyClaimDay === getTodayKey();
+  const activities = [...membership.memberActivity].sort((a, b) =>
+    String(b.createdAtIso || "").localeCompare(String(a.createdAtIso || ""))
+  );
+
+  memberCardName.textContent = getUserLabel(user, profile) || "Membro Kobra Kay";
+  memberCardId.textContent = membership.memberId;
+  memberCardStatus.textContent = `Stato tessera: ${membership.membershipStatus.toLowerCase()}`;
+  memberPointsBalance.textContent = `${membership.points} punti`;
+  memberTicketCount.textContent = `${membership.lotteryTickets}`;
+  memberLastDaily.textContent = membership.lastDailyClaimDay
+    ? membership.lastDailyClaimDay
+    : "Non ancora riscattato";
+
+  if (dailyClaimButton) {
+    dailyClaimButton.disabled = alreadyClaimedToday;
+    dailyClaimButton.textContent = alreadyClaimedToday
+      ? "Bonus gia riscattato oggi"
+      : "Riscatta bonus giornaliero";
+  }
+  if (buyTicketButton) {
+    buyTicketButton.disabled = membership.points < LOTTERY_TICKET_COST;
+  }
+  if (buyFiveTicketsButton) {
+    buyFiveTicketsButton.disabled = membership.points < LOTTERY_TICKET_COST * 5;
+  }
+
+  if (memberActivityList) {
+    if (!activities.length) {
+      memberActivityList.innerHTML =
+        '<p class="muted">Ancora nessuna attivita registrata.</p>';
+      return;
+    }
+
+    memberActivityList.innerHTML = activities
+      .slice(0, 6)
+      .map((activity) => {
+        const pointsLabel =
+          Number(activity.points || 0) >= 0
+            ? `+${activity.points || 0} punti`
+            : `${activity.points || 0} punti`;
+        return `
+          <div class="activity-item">
+            <strong>${getActivityLabel(activity)}</strong>
+            <span class="points-badge">${pointsLabel}</span>
+            <p>${activity.note || ""}</p>
+            <span class="date">${activity.createdAtIso ? new Date(activity.createdAtIso).toLocaleString("it-IT") : "Adesso"}</span>
+          </div>
+        `;
+      })
+      .join("");
+  }
+};
+
+const setMemberCardMessage = (text) => {
+  if (memberCardNote) {
+    memberCardNote.textContent = text;
+  }
 };
 
 const renderMemberTrainings = (trainings = []) => {
@@ -819,6 +998,112 @@ if (
   });
 }
 
+const applyDailyClaim = async () => {
+  const user = auth.currentUser;
+  if (!user) {
+    return;
+  }
+  const membership = getMembershipData(user, currentUserProfile);
+  if (membership.lastDailyClaimDay === getTodayKey()) {
+    setMemberCardMessage("Hai gia riscattato il bonus di oggi.");
+    return;
+  }
+
+  await setDoc(
+    doc(db, "users", user.uid),
+    {
+      memberId: membership.memberId,
+      membershipStatus: membership.membershipStatus,
+      monthlyTicketsMonth: membership.monthlyTicketsMonth,
+      lastDailyClaimDay: getTodayKey(),
+      points: membership.points + DAILY_CLAIM_POINTS,
+      memberActivity: arrayUnion({
+        type: "daily",
+        label: "Bonus giornaliero",
+        note: "Accesso giornaliero riscattato",
+        points: DAILY_CLAIM_POINTS,
+        createdAtIso: new Date().toISOString(),
+      }),
+    },
+    { merge: true }
+  );
+
+  setMemberCardMessage("Bonus giornaliero riscattato.");
+};
+
+const buyLotteryTickets = async (count) => {
+  const user = auth.currentUser;
+  if (!user) {
+    return;
+  }
+  const membership = getMembershipData(user, currentUserProfile);
+  const cost = LOTTERY_TICKET_COST * count;
+  if (membership.points < cost) {
+    setMemberCardMessage("Non hai abbastanza punti per comprare questi biglietti.");
+    return;
+  }
+
+  const nextTickets =
+    membership.monthlyTicketsMonth === getCurrentMonthKey()
+      ? membership.lotteryTickets + count
+      : count;
+
+  await setDoc(
+    doc(db, "users", user.uid),
+    {
+      memberId: membership.memberId,
+      membershipStatus: membership.membershipStatus,
+      monthlyTicketsMonth: getCurrentMonthKey(),
+      lotteryTickets: nextTickets,
+      points: membership.points - cost,
+      memberActivity: arrayUnion({
+        type: "lottery_redeem",
+        label: count === 1 ? "Biglietto lotteria" : `${count} biglietti lotteria`,
+        note: `Conversione punti in ${count} biglietto${count > 1 ? "i" : ""}`,
+        points: -cost,
+        createdAtIso: new Date().toISOString(),
+      }),
+    },
+    { merge: true }
+  );
+
+  setMemberCardMessage(
+    count === 1
+      ? "Hai comprato 1 biglietto lotteria."
+      : `Hai comprato ${count} biglietti lotteria.`
+  );
+};
+
+if (dailyClaimButton) {
+  dailyClaimButton.addEventListener("click", async () => {
+    try {
+      await applyDailyClaim();
+    } catch (error) {
+      setMemberCardMessage(error?.message || "Bonus giornaliero non riuscito.");
+    }
+  });
+}
+
+if (buyTicketButton) {
+  buyTicketButton.addEventListener("click", async () => {
+    try {
+      await buyLotteryTickets(1);
+    } catch (error) {
+      setMemberCardMessage(error?.message || "Acquisto biglietto non riuscito.");
+    }
+  });
+}
+
+if (buyFiveTicketsButton) {
+  buyFiveTicketsButton.addEventListener("click", async () => {
+    try {
+      await buyLotteryTickets(5);
+    } catch (error) {
+      setMemberCardMessage(error?.message || "Acquisto biglietti non riuscito.");
+    }
+  });
+}
+
 if (
   memberTrainingForm &&
   memberTrainingDateInput &&
@@ -997,9 +1282,11 @@ onAuthStateChanged(auth, async (user) => {
       (snapshot) => {
         const profile = snapshot.exists() ? snapshot.data() : {};
         currentUserProfile = profile;
+        syncMembershipDefaults(user, profile).catch(() => {});
         renderHeaderUser(user, profile);
         populateProfileForm(profile);
         renderProfileSummary(user, profile);
+        renderMembershipCard(user, profile);
       }
     );
     const label = user.email || user.phoneNumber || "utente";
@@ -1026,6 +1313,7 @@ onAuthStateChanged(auth, async (user) => {
     setLoginFlag(false);
     syncAdminFlag(null);
     renderHeaderUser(null);
+    renderMembershipCard(null, {});
     updateTournamentRegistrationUi();
     redirectToLogin();
   }
