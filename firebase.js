@@ -388,8 +388,10 @@ const setLoginFlag = (value) => {
 const syncAdminFlag = (user) => {
   const normalizedEmail = (user?.email || "").trim().toLowerCase();
   if (ADMIN_EMAILS.includes(normalizedEmail)) {
+    localStorage.setItem("myagi_admin_logged_in", "true");
     sessionStorage.setItem("myagi_admin_logged_in", "true");
   } else {
+    localStorage.removeItem("myagi_admin_logged_in");
     sessionStorage.removeItem("myagi_admin_logged_in");
   }
   window.dispatchEvent(new CustomEvent("admin-auth-change"));

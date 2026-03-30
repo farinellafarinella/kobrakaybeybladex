@@ -194,7 +194,8 @@ const subscribeCollection = (name, onData) => {
 };
 
 const isAdminLoggedIn = () =>
-  sessionStorage.getItem("myagi_admin_logged_in") === "true";
+  sessionStorage.getItem("myagi_admin_logged_in") === "true" ||
+  localStorage.getItem("myagi_admin_logged_in") === "true";
 
 const renderEvents = () => {
   const grid = document.getElementById("event-grid");
@@ -1581,6 +1582,7 @@ if (resetButton) {
 
 if (logoutButton) {
   logoutButton.addEventListener("click", () => {
+    localStorage.removeItem("myagi_admin_logged_in");
     sessionStorage.removeItem("myagi_admin_logged_in");
     hideAdminPanel();
   });
