@@ -102,6 +102,7 @@ const memberTrainingGrid = document.getElementById("member-training-grid");
 const eventGrid = document.getElementById("event-grid");
 const memberCardName = document.getElementById("member-card-name");
 const memberCardId = document.getElementById("member-card-id");
+const memberQrCode = document.getElementById("member-qr-code");
 const memberCardStatus = document.getElementById("member-card-status");
 const memberPointsBalance = document.getElementById("member-points-balance");
 const memberTicketCount = document.getElementById("member-ticket-count");
@@ -698,6 +699,19 @@ const renderMembershipCard = (user, profile = {}) => {
 
   memberCardName.textContent = getUserLabel(user, profile) || "Membro Kobra Kay";
   memberCardId.textContent = membership.memberId;
+  if (memberQrCode) {
+    memberQrCode.innerHTML = "";
+    if (window.QRCode && membership.memberId) {
+      new window.QRCode(memberQrCode, {
+        text: `KOBRAKAY:${membership.memberId}`,
+        width: 132,
+        height: 132,
+        colorDark: "#fdf419",
+        colorLight: "#050505",
+        correctLevel: window.QRCode.CorrectLevel.M,
+      });
+    }
+  }
   memberCardStatus.textContent = `Stato tessera: ${membership.membershipStatus.toLowerCase()}`;
   memberPointsBalance.textContent = `${membership.points} punti`;
   memberTicketCount.textContent = `${membership.lotteryTickets}`;

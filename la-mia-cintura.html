@@ -41,12 +41,13 @@
         <div class="member-card">
           <p class="eyebrow">Tessera digitale</p>
           <h2 id="member-card-name">Membro Kobra Kay</h2>
-        <p class="lead">La tua tessera si attiva appena entri nell'app e ti segue in tutte le attivita del club.</p>
-        <div class="barcode-strip" aria-hidden="true"></div>
-        <p class="barcode-value" id="member-card-id">KK-00000000</p>
-        <p class="form-note" id="member-card-status">Stato tessera: attiva</p>
-        <p class="form-note">V1: per ora lo staff usa l'ID tessera per assegnare i punti, la scansione automatica arriva dopo.</p>
-      </div>
+          <p class="lead">La tua tessera si attiva appena entri nell'app e ti segue in tutte le attivita del club.</p>
+          <div class="member-qr-code" id="member-qr-code" aria-label="QR della tessera"></div>
+          <div class="barcode-strip" aria-hidden="true"></div>
+          <p class="barcode-value" id="member-card-id">KK-00000000</p>
+          <p class="form-note" id="member-card-status">Stato tessera: attiva</p>
+          <p class="form-note">Lo staff puo scansionare questo codice in admin per registrare la tua presenza e assegnare i punti.</p>
+        </div>
       </div>
 
       <div class="creator-results profile-summary">
@@ -71,6 +72,20 @@
           <button class="cta ghost" type="button" id="buy-five-tickets-button">Compra 5 biglietti</button>
         </div>
         <p class="form-note" id="member-card-note">Ogni accesso e un passo in piu dentro il club.</p>
+      </div>
+
+      <div class="creator-results">
+        <h2>Premio mensile in palio</h2>
+        <div class="profile-metrics">
+          <div class="profile-metric">
+            <span class="profile-metric-label">Premio</span>
+            <strong id="monthly-prize-title">Premio del mese in arrivo</strong>
+          </div>
+          <div class="profile-metric">
+            <span class="profile-metric-label">Dettagli</span>
+            <strong id="monthly-prize-note">Lo staff deve ancora pubblicare il premio mensile.</strong>
+          </div>
+        </div>
       </div>
 
       <div class="creator-form">
@@ -106,6 +121,7 @@
 
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="app.js"></script>
   <script type="module" src="firebase.js"></script>
 </body>

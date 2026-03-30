@@ -116,6 +116,14 @@
           </form>
           <form class="admin-form" id="points-form">
             <h3>Assegna punti tessera</h3>
+            <div class="scanner-shell">
+              <div id="ticket-scanner" class="scanner-box" hidden></div>
+              <div class="scanner-actions">
+                <button class="cta ghost" type="button" id="start-scan">Apri scanner camera</button>
+                <button class="cta ghost" type="button" id="stop-scan" hidden>Chiudi scanner</button>
+              </div>
+              <p class="form-note" id="scanner-status">Scansiona la tessera e il membro viene compilato automaticamente.</p>
+            </div>
             <label>
               ID tessera o email
               <input type="text" id="points-user" placeholder="KK-1234ABCD oppure mail" required />
@@ -138,6 +146,19 @@
             </label>
             <button class="cta" type="submit">Assegna punti</button>
             <p class="form-note" id="points-status">Usa la mail o l'ID tessera del membro per aggiungere punti.</p>
+          </form>
+          <form class="admin-form" id="lottery-form">
+            <h3>Premio lotteria mensile</h3>
+            <label>
+              Titolo premio
+              <input type="text" id="lottery-title" placeholder="Starter Set Beyblade X" required />
+            </label>
+            <label>
+              Dettagli premio
+              <input type="text" id="lottery-note" placeholder="Premio del mese corrente" />
+            </label>
+            <button class="cta" type="submit">Salva premio</button>
+            <p class="form-note" id="lottery-status">Aggiorna qui il premio mensile mostrato nella tessera.</p>
           </form>
         </div>
 
@@ -189,6 +210,7 @@
 
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <script src="app.js"></script>
   <script type="module" src="firebase.js"></script>
 </body>

@@ -339,6 +339,7 @@ const renderTrophies = () => {
 renderEvents();
 renderTrainings();
 renderTrophies();
+renderMonthlyLotteryPrize();
 
 const REFEREE_LEVELS = [
   "in-formazione",
@@ -1004,9 +1005,77 @@ const trainingForm = document.getElementById("training-form");
 const trophyForm = document.getElementById("trophy-form");
 const pointsForm = document.getElementById("points-form");
 const pointsStatus = document.getElementById("points-status");
+const lotteryForm = document.getElementById("lottery-form");
+const lotteryStatus = document.getElementById("lottery-status");
+const scannerRoot = document.getElementById("ticket-scanner");
+const scannerStatus = document.getElementById("scanner-status");
+const startScanButton = document.getElementById("start-scan");
+const stopScanButton = document.getElementById("stop-scan");
 const passwordForm = document.getElementById("password-form");
 const resetButton = document.getElementById("reset-data");
 const logoutButton = document.getElementById("admin-logout");
+let ticketScanner = null;
+let scannerRunning = false;
+
+const monthlyPrizeTitle = document.getElementById("monthly-prize-title");
+const monthlyPrizeNote = document.getElementById("monthly-prize-note");
+const homeMonthlyPrize = document.getElementById("home-monthly-prize");
+
+const normalizeScannedMemberId = (value) => {
+  const raw = String(value || "").trim();
+  if (!raw) {
+    return "";
+  }
+  if (raw.startsWith("KOBRAKAY:")) {
+    return raw.slice("KOBRAKAY:".length).trim().toUpperCase();
+  }
+  return raw.toUpperCase();
+};
+
+const renderMonthlyLotteryPrize = () => {
+  if (!monthlyPrizeTitle && !monthlyPrizeNote && !homeMonthlyPrize) {
+    return;
+  }
+  if (!firestore) {
+    ensureFirestore(renderMonthlyLotteryPrize);
+    return;
+  }
+
+  firestore
+    .collection("meta")
+    .doc("monthlyLottery")
+    .onSnapshot(
+      (snapshot) => {
+        const data = snapshot.exists ? snapshot.data() : {};
+        const title = (data.title || "").trim() || "Premio del mese in arrivo";
+        const note =
+          (data.note || "").trim() ||
+          "Lo staff deve ancora pubblicare il premio mensile.";
+
+        if (monthlyPrizeTitle) {
+          monthlyPrizeTitle.textContent = title;
+        }
+        if (monthlyPrizeNote) {
+          monthlyPrizeNote.textContent = note;
+        }
+        if (homeMonthlyPrize) {
+          homeMonthlyPrize.textContent = title;
+        }
+      },
+      () => {
+        if (monthlyPrizeTitle) {
+          monthlyPrizeTitle.textContent = "Premio del mese in arrivo";
+        }
+        if (monthlyPrizeNote) {
+          monthlyPrizeNote.textContent =
+            "Lo staff deve ancora pubblicare il premio mensile.";
+        }
+        if (homeMonthlyPrize) {
+          homeMonthlyPrize.textContent = "in arrivo";
+        }
+      }
+    );
+};
 
 const setAdminFormsEnabled = (enabled) => {
   [refereeForm, eventForm, trainingForm, trophyForm, pointsForm, passwordForm].forEach(
@@ -1315,6 +1384,147 @@ if (pointsForm) {
     if (typeSelect && valueInput) {
       const selectedOption = typeSelect.options[typeSelect.selectedIndex];
       valueInput.value = selectedOption?.dataset.points || "30";
+    }
+  });
+}
+
+if (lotteryForm) {
+  lotteryForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!isAdminLoggedIn()) {
+      alert("Devi fare login admin per aggiornare il premio mensile.");
+      return;
+    }
+    if (!firestore) {
+      return;
+    }
+
+    const titleInput = document.getElementById("lottery-title");
+    const noteInput = document.getElementById("lottery-note");
+    const title = titleInput?.value.trim() || "";
+    const note = noteInput?.value.trim() || "";
+
+    if (!title) {
+      if (lotteryStatus) {
+        lotteryStatus.textContent = "Inserisci il titolo del premio mensile.";
+      }
+      return;
+    }
+
+    await firestore
+      .collection("meta")
+      .doc("monthlyLottery")
+      .set(
+        {
+          title,
+          note,
+          updatedAt: window.firebase.firestore.FieldValue.serverTimestamp(),
+        },
+        { merge: true }
+      );
+
+    if (lotteryStatus) {
+      lotteryStatus.textContent = `Premio mensile aggiornato: ${title}`;
+    }
+  });
+}
+
+const stopTicketScanner = async () => {
+  if (!ticketScanner) {
+    if (scannerRoot) {
+      scannerRoot.hidden = true;
+    }
+    if (stopScanButton) {
+      stopScanButton.hidden = true;
+    }
+    return;
+  }
+  try {
+    await ticketScanner.stop();
+  } catch (error) {
+    // Ignore stop races from repeated clicks.
+  }
+  try {
+    await ticketScanner.clear();
+  } catch (error) {
+    // Ignore cleanup errors.
+  }
+  scannerRunning = false;
+  if (scannerRoot) {
+    scannerRoot.hidden = true;
+  }
+  if (stopScanButton) {
+    stopScanButton.hidden = true;
+  }
+};
+
+if (startScanButton && scannerRoot && pointsForm) {
+  startScanButton.addEventListener("click", async () => {
+    if (!isAdminLoggedIn()) {
+      alert("Devi fare login admin per usare lo scanner.");
+      return;
+    }
+    if (
+      typeof window.Html5Qrcode === "undefined" ||
+      typeof window.Html5QrcodeSupportedFormats === "undefined"
+    ) {
+      if (scannerStatus) {
+        scannerStatus.textContent = "Scanner camera non disponibile in questo browser.";
+      }
+      return;
+    }
+    if (scannerRunning) {
+      return;
+    }
+
+    scannerRoot.hidden = false;
+    stopScanButton.hidden = false;
+    scannerStatus.textContent = "Avvio camera in corso...";
+    ticketScanner = ticketScanner || new window.Html5Qrcode("ticket-scanner");
+
+    try {
+      await ticketScanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: { width: 220, height: 220 },
+          formatsToSupport: [window.Html5QrcodeSupportedFormats.QR_CODE],
+        },
+        async (decodedText) => {
+          if (!scannerRunning) {
+            return;
+          }
+          const pointsUserInput = document.getElementById("points-user");
+          const memberId = normalizeScannedMemberId(decodedText);
+          if (!memberId || !pointsUserInput) {
+            return;
+          }
+          pointsUserInput.value = memberId;
+          if (scannerStatus) {
+            scannerStatus.textContent = `Tessera rilevata: ${memberId}. Assegnazione in corso...`;
+          }
+          await stopTicketScanner();
+          pointsForm.requestSubmit();
+        },
+        () => {}
+      );
+      scannerRunning = true;
+      scannerStatus.textContent = "Inquadra il QR della tessera.";
+    } catch (error) {
+      scannerRunning = false;
+      scannerRoot.hidden = true;
+      stopScanButton.hidden = true;
+      scannerStatus.textContent =
+        "Impossibile avviare la camera. Controlla permessi browser o usa HTTPS.";
+    }
+  });
+}
+
+if (stopScanButton) {
+  stopScanButton.addEventListener("click", async () => {
+    await stopTicketScanner();
+    if (scannerStatus) {
+      scannerStatus.textContent = "Scanner fermato.";
     }
   });
 }
