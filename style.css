@@ -248,6 +248,12 @@ h3 {
   gap: 14px;
 }
 
+.discipline-toggle {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-start;
+}
+
 .hero-card {
   background: #121212;
   border-radius: var(--radius-lg);

@@ -85,7 +85,6 @@ const profileFirstNameInput = document.getElementById("profile-first-name");
 const profileLastNameInput = document.getElementById("profile-last-name");
 const profileNicknameInput = document.getElementById("profile-nickname");
 const profileCityInput = document.getElementById("profile-city");
-const profileTournamentsInput = document.getElementById("profile-tournaments");
 const profileSaveStatus = document.getElementById("profile-save-status");
 const profileDisplayName = document.getElementById("profile-display-name");
 const profileEmail = document.getElementById("profile-email");
@@ -666,7 +665,6 @@ const populateProfileForm = (profile = {}) => {
   profileLastNameInput.value = profile.lastName || "";
   profileNicknameInput.value = profile.nickname || "";
   profileCityInput.value = profile.city || "";
-  profileTournamentsInput.value = profile.tournamentsPlayed || 0;
 };
 
 const renderProfileSummary = (user, profile = {}) => {
@@ -963,8 +961,7 @@ if (
   profileFirstNameInput &&
   profileLastNameInput &&
   profileNicknameInput &&
-  profileCityInput &&
-  profileTournamentsInput
+  profileCityInput
 ) {
   profileForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -973,11 +970,6 @@ if (
       return;
     }
 
-    const tournamentsPlayed =
-      Number.parseInt(profileTournamentsInput.value || 0, 10) || 0;
-    const experiencePoints = getExperienceFromTournaments(tournamentsPlayed);
-    const currentBelt = getBeltFromExperience(experiencePoints);
-
     await setDoc(
       doc(db, "users", user.uid),
       {
@@ -985,9 +977,6 @@ if (
         lastName: profileLastNameInput.value.trim(),
         nickname: profileNicknameInput.value.trim(),
         city: profileCityInput.value.trim(),
-        tournamentsPlayed,
-        experiencePoints,
-        currentBelt,
       },
       { merge: true }
     );

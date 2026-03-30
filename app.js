@@ -47,6 +47,7 @@ const defaultTrophies = [
 const STORAGE = {
   adminPassword: "myagi_admin_password",
 };
+const TOURNAMENT_XP_REWARD = 100;
 
 const firebaseConfig = {
   apiKey: "AIzaSyCD4ZnQqwRuUbDsrZ-fKTcn898VsoJoLqM",
@@ -69,6 +70,24 @@ const escapeHtml = (value) =>
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+
+const disciplineToggleButton = document.getElementById("discipline-toggle");
+const disciplineStory = document.getElementById("discipline-story");
+
+if (disciplineToggleButton && disciplineStory) {
+  disciplineToggleButton.addEventListener("click", () => {
+    const isHidden = disciplineStory.hasAttribute("hidden");
+    if (isHidden) {
+      disciplineStory.removeAttribute("hidden");
+      disciplineToggleButton.setAttribute("aria-expanded", "true");
+      disciplineToggleButton.textContent = "Nascondi disciplina Kobra Kay";
+      return;
+    }
+    disciplineStory.setAttribute("hidden", "");
+    disciplineToggleButton.setAttribute("aria-expanded", "false");
+    disciplineToggleButton.textContent = "Mostra disciplina Kobra Kay";
+  });
+}
 
 const initFirestore = () => {
   if (firebaseReady) {
@@ -1231,6 +1250,30 @@ if (pointsForm) {
 
     const userDoc = snapshot.docs[0];
     const currentData = userDoc.data() || {};
+    const currentTournamentsPlayed =
+      Number.parseInt(currentData.tournamentsPlayed || 0, 10) || 0;
+    const nextTournamentsPlayed =
+      type === "tournament"
+        ? currentTournamentsPlayed + 1
+        : currentTournamentsPlayed;
+    const nextExperiencePoints =
+      type === "tournament"
+        ? nextTournamentsPlayed * TOURNAMENT_XP_REWARD
+        : Number.parseInt(currentData.experiencePoints || 0, 10) || 0;
+    const nextBelt =
+      nextExperiencePoints >= 1400
+        ? "Nera"
+        : nextExperiencePoints >= 1000
+          ? "Marrone"
+          : nextExperiencePoints >= 700
+            ? "Blu"
+            : nextExperiencePoints >= 450
+              ? "Verde"
+              : nextExperiencePoints >= 250
+                ? "Arancione"
+                : nextExperiencePoints >= 100
+                  ? "Gialla"
+                  : "Bianca";
     const activityEntry = {
       type,
       label:
@@ -1248,6 +1291,9 @@ if (pointsForm) {
       {
         points:
           (Number.parseInt(currentData.points || 0, 10) || 0) + points,
+        tournamentsPlayed: nextTournamentsPlayed,
+        experiencePoints: nextExperiencePoints,
+        currentBelt: nextBelt,
         memberActivity: window.firebase.firestore.FieldValue.arrayUnion(
           activityEntry
         ),
